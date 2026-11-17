@@ -1,0 +1,358 @@
+<title>Workbench Shelf Layout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: same workbench board as the other viewers. Side rail of controls, large framed stage. */
+:root {
+  --bg: #e4e8e6; --panel: #f4f6f4; --stage: #d8dedb; --fg: #17282c; --muted: #54676b;
+  --line: #bfcac7; --accent: #143f4a; --on-accent: #f2f7f6;
+  --display: "Familjen Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1a1d; --panel: #16262a; --stage: #2a3f44; --fg: #e6eeec; --muted: #9db0b1;
+  --line: #31474c; --accent: #8fd0d6; --on-accent: #0b2227; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0f1a1d; --panel: #16262a; --stage: #2a3f44; --fg: #e6eeec; --muted: #9db0b1;
+  --line: #31474c; --accent: #8fd0d6; --on-accent: #0b2227; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--display); }
+.app {
+  height: 100%; box-sizing: border-box; display: grid; gap: 14px;
+  grid-template-columns: 292px minmax(0, 1fr);
+  padding-block: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.rail {
+  min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px;
+}
+h1 { font-size: 20px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.group { display: flex; flex-direction: column; gap: 7px; }
+.group > h2 { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 500; }
+.space { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 13px; }
+.space dt { color: var(--muted); }
+.space dd { margin: 0; font: 500 13px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+button {
+  font: 500 13px/1.2 var(--display); color: var(--fg); background: transparent;
+  border: 1px solid var(--line); border-radius: 4px; padding: 8px 7px; cursor: pointer; text-align: left;
+}
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 13px; }
+.toggles label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.toggles input { accent-color: var(--accent); margin: 0; }
+.note { font-size: 12px; line-height: 1.45; color: var(--muted); margin: 0; }
+.stage {
+  position: relative; min-width: 0; min-height: 0; overflow: hidden;
+  background: var(--stage); border: 1px solid var(--line); border-radius: 6px;
+}
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#view:active { cursor: grabbing; }
+.readout {
+  position: absolute; left: 12px; bottom: 12px; max-width: min(380px, calc(100% - 24px));
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 8px 11px; pointer-events: none;
+}
+.readout strong { display: block; font-size: 14px; }
+.readout span { font: 400 12px/1.45 var(--mono); color: var(--muted); }
+.hint { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
+.fail { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; line-height: 1.5; }
+@media (max-width: 760px) {
+  html, body { height: auto; }
+  .app { height: auto; grid-template-columns: minmax(0, 1fr); }
+  .stage { grid-row: 1; height: 62vh; min-height: 340px; }
+  .rail { overflow: visible; }
+  .buttons { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+  .hint { display: none; }
+}
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <header>
+      <h1>Four shelves and two totes under two tables</h1>
+    </header>
+    <section class="group" aria-labelledby="h-space">
+      <h2 id="h-space">Space</h2>
+      <dl class="space">
+        <dt>Knee depth, table edge to shelf</dt><dd>15 in</dd>
+        <dt>Shelf top to bottom bar</dt><dd>2.5 in</dd>
+        <dt>Shelf top to underside of top</dt><dd>5.25 in</dd>
+        <dt>Width gaps at legs and center</dt><dd>1.67 in</dd>
+        <dt>Tote top to shelf cleat</dt><dd>3.74 in</dd>
+        <dt>Width gaps beside the totes</dt><dd>1.03 in</dd>
+      </dl>
+    </section>
+    <section class="group" aria-labelledby="h-angles">
+      <h2 id="h-angles">Angles</h2>
+      <div class="buttons" id="angles"></div>
+    </section>
+    <section class="group" aria-labelledby="h-details">
+      <h2 id="h-details">Close-ups</h2>
+      <div class="buttons" id="details"></div>
+    </section>
+    <section class="group" aria-labelledby="h-show">
+      <h2 id="h-show">Show</h2>
+      <div class="toggles" id="toggles"></div>
+    </section>
+    <p class="note">Shelves sit side by side with their backs toward the center of the pair. Both totes are on the lower shelf of Table A's left unit, 1 in behind its front edge. Leg size is estimated from the photo, so the width gaps may change. The base is assumed centered under its top, and the tables are shown with no gap until it is measured.</p>
+  </aside>
+  <main class="stage" id="stage">
+    <canvas id="view" aria-label="3D model of four shelf units under two workbench tables. Drag to rotate, scroll to zoom."></canvas>
+    <div class="hint">Drag to rotate · Scroll to zoom · Click a part</div>
+    <div class="readout" aria-live="polite"><strong id="r-name">Click a part</strong><span id="r-size">Its name and size appear here.</span></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script type="application/json" id="model-data">/*__MODEL__*/</script>
+<script>
+(function () {
+  const IN = 25.4;
+  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('view');
+  function fail(message) {
+    const box = document.createElement('div');
+    box.className = 'fail';
+    box.textContent = message;
+    stage.appendChild(box);
+  }
+  if (!window.THREE || !THREE.OrbitControls) {
+    fail('The 3D library did not load. Check your connection and reload this page.');
+    return;
+  }
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  } catch (error) {
+    fail('This browser could not start WebGL, which the 3D view needs. Try another browser or turn on hardware acceleration.');
+    return;
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  const decode = (text, Type) => {
+    const raw = atob(text);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return new Type(bytes.buffer);
+  };
+  function buildGeometry(part) {
+    const indexed = new THREE.BufferGeometry();
+    indexed.setAttribute('position', new THREE.BufferAttribute(decode(part.v, Float32Array), 3));
+    indexed.setIndex(new THREE.BufferAttribute(decode(part.t, Uint16Array), 1));
+    const geometry = indexed.toNonIndexed();
+    geometry.computeVertexNormals();
+    return { geometry, edges: new THREE.EdgesGeometry(geometry, 28) };
+  }
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 10, 40000);
+  camera.up.set(0, 0, 1);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8d8378, 0.72));
+  [[-0.7, -1, 1.2, 0.62], [1, 0.8, 0.7, 0.26], [0.2, -0.4, -1, 0.14]].forEach(([x, y, z, power]) => {
+    const light = new THREE.DirectionalLight(0xffffff, power);
+    light.position.set(x, y, z);
+    scene.add(light);
+  });
+  const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x20262a, transparent: true, opacity: 0.36 });
+
+  const data = JSON.parse(document.getElementById('model-data').textContent);
+  const parts = [];
+  function addPart(parent, part, built, title, category) {
+    const material = new THREE.MeshStandardMaterial({ color: part.color, roughness: 0.62 });
+    const mesh = new THREE.Mesh(built.geometry, material);
+    mesh.add(new THREE.LineSegments(built.edges, edgeMaterial));
+    parent.add(mesh);
+    const record = { name: part.name, title, detail: part.detail, category, mesh, material };
+    mesh.userData.record = record;
+    parts.push(record);
+  }
+
+  data.tables.forEach((part) => {
+    const table = part.group === 'table_a' ? 'Table A' : 'Table B';
+    let category = part.group;
+    if (/_panel$|_outlet_/.test(part.name)) category = 'panels';
+    if (/_top$/.test(part.name)) category = 'tops';
+    addPart(scene, part, buildGeometry(part), `${table}: ${part.title.toLowerCase()}`, category);
+  });
+  const unitBuilt = data.unit.map(buildGeometry);
+  data.placements.forEach((place) => {
+    const holder = new THREE.Group();
+    holder.position.set(place.x * IN, place.y * IN, 0);
+    holder.rotation.z = THREE.MathUtils.degToRad(place.rot);
+    scene.add(holder);
+    data.unit.forEach((part, i) => {
+      addPart(holder, part, unitBuilt[i], `Shelf ${place.label}: ${part.title.toLowerCase()}`, 'shelves');
+    });
+  });
+  const toteBuilt = data.tote.map(buildGeometry);
+  data.tote_placements.forEach((place) => {
+    const holder = new THREE.Group();
+    holder.position.set(place.x * IN, place.y * IN, place.z * IN);
+    scene.add(holder);
+    data.tote.forEach((part, i) => {
+      addPart(holder, part, toteBuilt[i], `Tote ${place.label}: ${part.title.toLowerCase()}`, 'totes');
+    });
+  });
+  scene.updateMatrixWorld(true);
+
+  const VIEWS = {
+    front34: { label: 'Front ¾', dir: [-0.62, -1, 0.42] },
+    rear34: { label: 'Rear ¾', dir: [0.72, 1, 0.38] },
+    long: { label: 'Long side', dir: [0, -1, 0.001] },
+    end: { label: 'End', dir: [-1, 0, 0.001] },
+    top: { label: 'Top', dir: [0, -0.001, 1] },
+    under: { label: 'Underside', dir: [0, -0.001, -1] },
+  };
+  const DETAILS = {
+    d_knee: { label: 'Knee space', dir: [-0.28, -1, 0.1], target: [36, 8, 17], radius: 30 },
+    d_profile: { label: 'End profile', dir: [-1, 0, 0.02], target: [0, 30, 19], radius: 37 },
+    d_bar: { label: 'Bar clearance', dir: [-0.85, -1, 0.04], target: [6.5, 21, 30.7], radius: 7 },
+    d_gap: { label: 'Center gap', dir: [0, -1, 0.3], target: [36, 15, 21], radius: 10 },
+    d_totes: { label: 'Totes', dir: [-0.35, -1, 0.42], target: [20.2, 20, 9.5], radius: 18 },
+  };
+
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hidden = new Set();
+  let viewKey = 'front34';
+  let tween = null;
+  let selected = null;
+  let dirty = true;
+
+  function fitFor() {
+    const box = new THREE.Box3();
+    parts.forEach((part) => { if (!hidden.has(part.category)) box.expandByObject(part.mesh); });
+    if (box.isEmpty()) box.setFromCenterAndSize(new THREE.Vector3(36 * IN, 30 * IN, 20 * IN), new THREE.Vector3(1000, 1000, 1000));
+    return box.getBoundingSphere(new THREE.Sphere());
+  }
+
+  function applyView(key, animate) {
+    viewKey = key;
+    const view = VIEWS[key] || DETAILS[key];
+    let target;
+    let radius;
+    if (view.target) {
+      target = new THREE.Vector3(view.target[0] * IN, view.target[1] * IN, view.target[2] * IN);
+      radius = view.radius * IN;
+    } else {
+      const sphere = fitFor();
+      target = sphere.center.clone();
+      radius = sphere.radius;
+    }
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+    const distance = (radius / Math.sin(Math.min(vFov, hFov) / 2)) * 1.04;
+    const position = target.clone().add(new THREE.Vector3(...view.dir).normalize().multiplyScalar(distance));
+    tween = {
+      start: performance.now(), ms: animate && !reduced ? 650 : 0,
+      camFrom: camera.position.clone(), camTo: position,
+      targetFrom: controls.target.clone(), targetTo: target,
+    };
+    dirty = true;
+    syncButtons();
+  }
+
+  const anglesEl = document.getElementById('angles');
+  const detailsEl = document.getElementById('details');
+  function makeButtons(holder, source) {
+    Object.keys(source).forEach((key) => {
+      const button = document.createElement('button');
+      button.id = 'btn-' + key;
+      button.type = 'button';
+      button.textContent = source[key].label;
+      button.dataset.key = key;
+      button.addEventListener('click', () => applyView(key, true));
+      holder.appendChild(button);
+    });
+  }
+  makeButtons(anglesEl, VIEWS);
+  makeButtons(detailsEl, DETAILS);
+  function syncButtons() {
+    [anglesEl, detailsEl].forEach((holder) => holder.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.key === viewKey));
+    }));
+  }
+
+  const togglesEl = document.getElementById('toggles');
+  [['shelves', 'Shelves'], ['totes', 'Totes'], ['tops', 'Table tops'], ['panels', 'Outlet panels'], ['table_a', 'Base A'], ['table_b', 'Base B']].forEach(([key, label]) => {
+    const row = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = 'show-' + key;
+    input.checked = true;
+    input.addEventListener('change', () => {
+      if (input.checked) hidden.delete(key); else hidden.add(key);
+      parts.forEach((part) => { part.mesh.visible = !hidden.has(part.category); });
+      dirty = true;
+    });
+    row.append(input, document.createTextNode(label));
+    togglesEl.appendChild(row);
+  });
+
+  const rName = document.getElementById('r-name');
+  const rSize = document.getElementById('r-size');
+  const ray = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let downAt = null;
+  canvas.addEventListener('pointerdown', (event) => { downAt = [event.clientX, event.clientY]; });
+  canvas.addEventListener('pointerup', (event) => {
+    if (!downAt || Math.hypot(event.clientX - downAt[0], event.clientY - downAt[1]) > 5) return;
+    const rect = canvas.getBoundingClientRect();
+    pointer.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+    ray.setFromCamera(pointer, camera);
+    const hit = ray.intersectObjects(parts.filter((p) => p.mesh.visible).map((p) => p.mesh), false)[0];
+    if (selected) selected.material.emissive.setHex(0x000000);
+    selected = hit ? hit.object.userData.record : null;
+    if (selected) {
+      selected.material.emissive.setHex(0x1d5f6b);
+      rName.textContent = selected.title;
+      rSize.textContent = selected.detail;
+    } else {
+      rName.textContent = 'Click a part';
+      rSize.textContent = 'Its name and size appear here.';
+    }
+    dirty = true;
+  });
+
+  function resize() {
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    if (!width || !height) return;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    dirty = true;
+  }
+  new ResizeObserver(resize).observe(stage);
+  controls.addEventListener('change', () => { dirty = true; });
+  controls.addEventListener('start', () => {
+    if (viewKey) { viewKey = null; syncButtons(); }
+  });
+
+  function frame(now) {
+    if (tween) {
+      const raw = tween.ms ? Math.min((now - tween.start) / tween.ms, 1) : 1;
+      const eased = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+      camera.position.lerpVectors(tween.camFrom, tween.camTo, eased);
+      controls.target.lerpVectors(tween.targetFrom, tween.targetTo, eased);
+      controls.update();
+      if (raw >= 1) tween = null;
+      dirty = true;
+    }
+    if (dirty) { renderer.render(scene, camera); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  applyView('front34', false);
+  requestAnimationFrame(frame);
+})();
+</script>

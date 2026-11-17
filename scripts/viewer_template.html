@@ -1,0 +1,479 @@
+<title>Shelf Unit Viewer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a workbench board. Controls in a side rail, the model on a large framed stage. */
+:root {
+  --bg: #e4e8e6; --panel: #f4f6f4; --stage: #fbfcfa; --fg: #17282c; --muted: #54676b;
+  --line: #c3cdca; --accent: #143f4a; --on-accent: #f2f7f6;
+  --display: "Familjen Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1a1d; --panel: #16262a; --stage: #1c2f34; --fg: #e6eeec; --muted: #9db0b1;
+  --line: #31474c; --accent: #8fd0d6; --on-accent: #0b2227; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #0f1a1d; --panel: #16262a; --stage: #1c2f34; --fg: #e6eeec; --muted: #9db0b1;
+  --line: #31474c; --accent: #8fd0d6; --on-accent: #0b2227; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--display); }
+.app {
+  height: 100%; box-sizing: border-box; display: grid; gap: 14px;
+  grid-template-columns: 292px minmax(0, 1fr);
+  padding-block: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.rail {
+  min-width: 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px;
+}
+h1 { font-size: 20px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.spec { font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 5px 0 0; font-variant-numeric: tabular-nums; }
+.group { display: flex; flex-direction: column; gap: 7px; }
+.group > h2 { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0; font-weight: 500; }
+.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+button {
+  font: 500 13px/1.2 var(--display); color: var(--fg); background: transparent;
+  border: 1px solid var(--line); border-radius: 4px; padding: 8px 7px; cursor: pointer; text-align: left;
+}
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.spread { display: grid; grid-template-columns: 1fr auto; gap: 3px 8px; align-items: center; font-size: 13px; }
+.spread input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.spread output { font: 400 12px var(--mono); color: var(--muted); }
+.toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 13px; }
+.toggles label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+.toggles input { accent-color: var(--accent); margin: 0; }
+.note { font-size: 12px; line-height: 1.45; color: var(--muted); margin: 0; }
+.stage {
+  position: relative; min-width: 0; min-height: 0; overflow: hidden;
+  background: var(--stage); border: 1px solid var(--line); border-radius: 6px;
+}
+#view { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#view:active { cursor: grabbing; }
+.readout {
+  position: absolute; left: 12px; bottom: 12px; max-width: min(380px, calc(100% - 24px));
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 8px 11px; pointer-events: none;
+}
+.readout strong { display: block; font-size: 14px; }
+.readout span { font: 400 12px/1.45 var(--mono); color: var(--muted); }
+.hint { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
+.fail { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; line-height: 1.5; }
+@media (max-width: 760px) {
+  html, body { height: auto; }
+  .app { height: auto; grid-template-columns: minmax(0, 1fr); }
+  .stage { grid-row: 1; height: 62vh; min-height: 340px; }
+  .rail { overflow: visible; }
+  .buttons { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+  .hint { display: none; }
+}
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <header>
+      <h1>Electronics workbench shelf unit</h1>
+      <p class="spec">30 W × 15 D × 29½ H in<br>Shelf surfaces at 3.303 and 18 in<br>One of four identical units</p>
+    </header>
+    <section class="group" aria-labelledby="h-angles">
+      <h2 id="h-angles">Angles</h2>
+      <div class="buttons" id="angles"></div>
+    </section>
+    <section class="group" aria-labelledby="h-details">
+      <h2 id="h-details">Close-ups</h2>
+      <div class="buttons" id="details"></div>
+    </section>
+    <section class="group" aria-labelledby="h-explode">
+      <h2 id="h-explode">Exploded views</h2>
+      <div class="buttons" id="modes"></div>
+      <div class="spread">
+        <label for="spread">Spread</label><output id="spread-out" for="spread">100%</output>
+        <input id="spread" type="range" min="0" max="100" value="100">
+      </div>
+    </section>
+    <section class="group" aria-labelledby="h-show">
+      <h2 id="h-show">Show</h2>
+      <div class="toggles" id="toggles"></div>
+    </section>
+    <p class="note">Sized for 0.703 in plywood, the plan's worked example. The caster plates, forks and screw size are placeholders until you have the real part. Screw positions are my choices where the plan gives none. By request, the plan's caster pads and nosing glue tabs are left out, and the casters screw into the base from below.</p>
+  </aside>
+  <main class="stage" id="stage">
+    <canvas id="view" aria-label="3D model of the shelf unit. Drag to rotate, scroll to zoom."></canvas>
+    <div class="hint">Drag to rotate · Scroll to zoom · Click a part</div>
+    <div class="readout" aria-live="polite"><strong id="r-name">Click a part</strong><span id="r-size">Its name and size appear here.</span></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script type="application/json" id="model-data">/*__MODEL__*/</script>
+<script>
+(function () {
+  const IN = 25.4;
+  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('view');
+
+  function fail(message) {
+    const box = document.createElement('div');
+    box.className = 'fail';
+    box.textContent = message;
+    stage.appendChild(box);
+  }
+  if (!window.THREE || !THREE.OrbitControls) {
+    fail('The 3D library did not load. Check your connection and reload this page.');
+    return;
+  }
+
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  } catch (error) {
+    fail('This browser could not start WebGL, which the 3D view needs. Try another browser or turn on hardware acceleration.');
+    return;
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  const decode = (text, Type) => {
+    const raw = atob(text);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return new Type(bytes.buffer);
+  };
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 10, 20000);
+  camera.up.set(0, 0, 1);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = false;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8d8378, 0.72));
+  [[-0.7, -1, 1.2, 0.62], [1, 0.8, 0.7, 0.26], [0.2, -0.4, -1, 0.14]].forEach(([x, y, z, power]) => {
+    const light = new THREE.DirectionalLight(0xffffff, power);
+    light.position.set(x, y, z);
+    scene.add(light);
+  });
+
+  // --- Parts ---
+  const data = JSON.parse(document.getElementById('model-data').textContent);
+  const parts = data.parts.map((part) => {
+    const indexed = new THREE.BufferGeometry();
+    indexed.setAttribute('position', new THREE.BufferAttribute(decode(part.v, Float32Array), 3));
+    indexed.setIndex(new THREE.BufferAttribute(decode(part.t, Uint16Array), 1));
+    const geometry = indexed.toNonIndexed();
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    const material = new THREE.MeshStandardMaterial({
+      color: part.color, roughness: part.group === 'wood' || part.group === 'ply' ? 0.72 : 0.45,
+      metalness: part.group === 'hardware' || part.group === 'caster' ? 0.25 : 0, transparent: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x3a2a18, transparent: true, opacity: 0.34 });
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 28), lineMaterial);
+    mesh.add(edges);
+    scene.add(mesh);
+    const record = { ...part, mesh, material, lineMaterial, from: new THREE.Vector3(), to: new THREE.Vector3() };
+    mesh.userData.record = record;
+    return record;
+  });
+
+  // --- Exploded layouts: offsets in inches for each part name ---
+  const isSide = (name) => /^screw:side_/.test(name);
+  const dirX = (name) => (/left/.test(name) ? -1 : 1);
+  const casterFor = (name) => name.match(/^caster_[a-z]+_[a-z]+/);
+
+  function fullOffset(name) {
+    if (/^side_/.test(name)) return [12 * dirX(name), 0, 0];
+    if (isSide(name)) return [17 * dirX(name), 0, 0];
+    if (name === 'back') return [0, 18, 0];
+    if (/^screw:back_/.test(name)) return [0, 23, 0];
+    if (/^post_/.test(name)) return [5 * dirX(name), 9, 0];
+    if (/^rail_|^ledger/.test(name)) return [0, 9, 0];
+    if (/^cleat_/.test(name)) return [6 * dirX(name), 0, 0];
+    if (name === 'upper_shelf') return [0, 0, 10];
+    if (name === 'nosing_upper') return [0, -9, 10];
+    if (/^screw:nosing_upper/.test(name)) return [0, -13, 10];
+    if (name === 'nosing_lower') return [0, -9, 0];
+    if (/^screw:nosing_lower/.test(name)) return [0, -13, 0];
+    if (/:bolt/.test(name)) return [0, 0, -10];
+    if (/^caster_/.test(name)) return [0, 0, -7];
+    return [0, 0, 0];
+  }
+
+  function frameOffset(name) {
+    if (/^post_/.test(name)) return [7 * dirX(name), 0, 0];
+    if (name === 'back') return [0, 9, 0];
+    if (/^screw:back_/.test(name)) return [0, 13, 0];
+    return [0, 0, 0];
+  }
+  const inFrame = (name) => /^post_|^rail_|^ledger$|^back$|^screw:back_/.test(name);
+
+  function shelfOffset(name) {
+    if (name === 'upper_shelf') return [0, 0, 7];
+    if (name === 'nosing_upper') return [0, -7, 7];
+    if (/^screw:nosing_upper/.test(name)) return [0, -11, 7];
+    if (name === 'cleat_left' || name === 'cleat_right') return [4 * dirX(name), 0, 0];
+    if (/^screw:side_cleat/.test(name)) return [8 * dirX(name), 0, 0];
+    return [0, 0, 0];
+  }
+  const inShelf = (name) => /^upper_shelf$|^nosing_upper$|^screw:nosing_upper|^cleat_|^ledger$|^screw:side_cleat/.test(name);
+
+  const SWIVEL = 'caster_swivel_front';
+  function casterOffset(name) {
+    if (!name.startsWith(SWIVEL)) return [0, 0, 0];
+    if (name.includes(':tire')) return [0, -3, -4.5];
+    const steel = name.match(/:steel(\d+)/);
+    if (steel) {
+      const i = Number(steel[1]);
+      if (i === 0) return [0, 0, -1.6];
+      if (i === 3) return [0, -1.8, -4.5];
+      return [0, 0, -4.5];
+    }
+    return [0, 0, -2.8];
+  }
+  const inCaster = (name) => name.startsWith(SWIVEL) || name === 'base';
+
+  const MODES = {
+    assembled: { label: 'Assembled', offset: () => [0, 0, 0], focus: () => true, view: 'front34' },
+    full: { label: 'Every part', offset: fullOffset, focus: () => true, view: 'front34' },
+    frame: { label: 'Rear frame', offset: frameOffset, focus: inFrame, view: 'rear34' },
+    shelf: { label: 'Upper shelf', offset: shelfOffset, focus: inShelf, view: 'front34' },
+    caster: { label: 'Caster', offset: casterOffset, focus: inCaster, dir: [-0.9, -1, 0.3], only: (n) => n !== 'base' },
+  };
+
+  const VIEWS = {
+    front34: { label: 'Front ¾', dir: [-0.62, -1, 0.42] },
+    rear34: { label: 'Rear ¾', dir: [0.72, 1, 0.38] },
+    front: { label: 'Front', dir: [0, -1, 0.001] },
+    back: { label: 'Back', dir: [0, 1, 0.001] },
+    side: { label: 'Side', dir: [-1, 0, 0.001] },
+    top: { label: 'Top', dir: [0, -0.001, 1] },
+    under: { label: 'Underside', dir: [0, -0.001, -1] },
+  };
+  const DETAILS = {
+    d_caster: { label: 'Swivel caster', dir: [-0.65, -1, -0.12], target: [3.2, 3.75, 2.2], radius: 3.6 },
+    d_rigid: { label: 'Rigid caster', dir: [0.65, -1, -0.12], target: [27.3, 3.75, 2.2], radius: 3.6 },
+    d_notch: { label: 'Shelf notch', dir: [0.72, -0.7, 0.62], target: [2.4, 13.3, 17.2], radius: 3.8 },
+    d_nose: { label: 'Shelf nosing', dir: [-0.5, -1, 0.5], target: [5.7, 0.9, 17.8], radius: 3.4 },
+    d_rail: { label: 'Rail housing', dir: [0.7, -0.8, 0.32], target: [2.2, 14, 28.5], radius: 3.2 },
+    d_screws: { label: 'Caster screws', dir: [0.55, -0.7, -1], target: [2.9, 3.75, 2.5], radius: 3 },
+  };
+
+  // --- State and motion ---
+  const center = new THREE.Vector3(15 * IN, 7.5 * IN, 14.75 * IN);
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hiddenGroups = new Set();
+  let modeKey = 'assembled';
+  let viewKey = 'front34';
+  let spread = 1;
+  let tween = null;
+  let selected = null;
+  let dirty = true;
+
+  const box3 = new THREE.Box3();
+  function fitFor(dir, focus) {
+    box3.makeEmpty();
+    parts.forEach((part) => {
+      if (focus && !focus(part.name)) return;
+      if (hiddenGroups.has(part.toggle)) return;
+      const box = part.mesh.geometry.boundingBox.clone().translate(part.to);
+      box3.union(box);
+    });
+    if (box3.isEmpty()) box3.setFromCenterAndSize(center, new THREE.Vector3(600, 600, 600));
+    const sphere = box3.getBoundingSphere(new THREE.Sphere());
+    return { target: sphere.center, radius: sphere.radius };
+  }
+
+  function placeCamera(dir, target, radius, animate) {
+    const aspect = camera.aspect;
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+    const distance = (radius / Math.sin(Math.min(vFov, hFov) / 2)) * 1.04;
+    const offset = new THREE.Vector3(dir[0], dir[1], dir[2]).normalize().multiplyScalar(distance);
+    startTween(target.clone().add(offset), target.clone(), animate);
+  }
+
+  function startTween(position, target, animate) {
+    parts.forEach((part) => part.from.copy(part.mesh.position));
+    tween = {
+      start: performance.now(), ms: animate && !reduced ? 650 : 0,
+      camFrom: camera.position.clone(), camTo: position,
+      targetFrom: controls.target.clone(), targetTo: target,
+    };
+    dirty = true;
+  }
+
+  function setOffsets() {
+    const mode = MODES[modeKey];
+    parts.forEach((part) => {
+      const [x, y, z] = mode.offset(part.name);
+      part.to.set(x * IN * spread, y * IN * spread, z * IN * spread);
+      const focused = mode.focus(part.name);
+      const visible = !hiddenGroups.has(part.toggle);
+      part.mesh.visible = visible;
+      part.material.opacity = focused ? 1 : 0.1;
+      part.material.depthWrite = focused;
+      part.lineMaterial.opacity = focused ? 0.34 : 0.05;
+    });
+  }
+
+  function applyView(key, animate) {
+    viewKey = key;
+    const view = VIEWS[key] || DETAILS[key];
+    setOffsets();
+    if (view.target) {
+      const target = new THREE.Vector3(view.target[0] * IN, view.target[1] * IN, view.target[2] * IN);
+      placeCamera(view.dir, target, view.radius * IN, animate);
+    } else {
+      const mode = MODES[modeKey];
+      const fit = fitFor(view.dir, mode.only ? (n) => mode.focus(n) && mode.only(n) : mode.focus);
+      placeCamera(view.dir, fit.target, fit.radius, animate);
+    }
+    syncButtons();
+  }
+
+  function applyMode(key, animate) {
+    modeKey = key;
+    const mode = MODES[key];
+    setOffsets();
+    if (mode.dir) {
+      const fit = fitFor(mode.dir, (n) => mode.focus(n) && mode.only(n));
+      viewKey = null;
+      placeCamera(mode.dir, fit.target, fit.radius, animate);
+      syncButtons();
+    } else {
+      applyView(mode.view, animate);
+    }
+  }
+
+  // --- Controls ---
+  function makeButtons(holder, source, onClick) {
+    Object.keys(source).forEach((key) => {
+      const button = document.createElement('button');
+      button.id = 'btn-' + key;
+      button.type = 'button';
+      button.textContent = source[key].label;
+      button.dataset.key = key;
+      button.addEventListener('click', () => onClick(key));
+      holder.appendChild(button);
+    });
+  }
+  const anglesEl = document.getElementById('angles');
+  const detailsEl = document.getElementById('details');
+  const modesEl = document.getElementById('modes');
+  makeButtons(anglesEl, VIEWS, (key) => applyView(key, true));
+  makeButtons(detailsEl, DETAILS, (key) => {
+    if (modeKey !== 'assembled') modeKey = 'assembled';
+    applyView(key, true);
+  });
+  makeButtons(modesEl, MODES, (key) => applyMode(key, true));
+
+  function syncButtons() {
+    [anglesEl, detailsEl].forEach((holder) => holder.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.key === viewKey));
+    }));
+    modesEl.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.key === modeKey));
+    });
+    document.getElementById('spread').disabled = modeKey === 'assembled';
+  }
+
+  const spreadInput = document.getElementById('spread');
+  const spreadOut = document.getElementById('spread-out');
+  spreadInput.addEventListener('input', () => {
+    spread = Number(spreadInput.value) / 100;
+    spreadOut.textContent = spreadInput.value + '%';
+    setOffsets();
+    parts.forEach((part) => part.mesh.position.copy(part.to));
+    tween = null;
+    dirty = true;
+  });
+
+  const TOGGLES = [['ply', 'Plywood'], ['wood', 'Solid wood'], ['hardware', 'Fasteners'], ['caster', 'Casters']];
+  const togglesEl = document.getElementById('toggles');
+  TOGGLES.forEach(([key, label]) => {
+    const row = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = 'show-' + key;
+    input.checked = true;
+    input.addEventListener('change', () => {
+      if (input.checked) hiddenGroups.delete(key); else hiddenGroups.add(key);
+      setOffsets();
+      dirty = true;
+    });
+    row.append(input, document.createTextNode(label));
+    togglesEl.appendChild(row);
+  });
+
+  // --- Click a part to read it ---
+  const rName = document.getElementById('r-name');
+  const rSize = document.getElementById('r-size');
+  const ray = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let downAt = null;
+  canvas.addEventListener('pointerdown', (event) => { downAt = [event.clientX, event.clientY]; });
+  canvas.addEventListener('pointerup', (event) => {
+    if (!downAt || Math.hypot(event.clientX - downAt[0], event.clientY - downAt[1]) > 5) return;
+    const rect = canvas.getBoundingClientRect();
+    pointer.set(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+    ray.setFromCamera(pointer, camera);
+    const focus = MODES[modeKey].focus;
+    const targets = parts.filter((p) => p.mesh.visible && focus(p.name)).map((p) => p.mesh);
+    const hit = ray.intersectObjects(targets, false)[0];
+    select(hit ? hit.object.userData.record : null);
+  });
+
+  function select(record) {
+    if (selected) selected.material.emissive.setHex(0x000000);
+    selected = record;
+    if (record) {
+      record.material.emissive.setHex(0x1d5f6b);
+      rName.textContent = record.title;
+      rSize.textContent = record.detail;
+    } else {
+      rName.textContent = 'Click a part';
+      rSize.textContent = 'Its name and size appear here.';
+    }
+    dirty = true;
+  }
+
+  // --- Loop ---
+  function resize() {
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    if (!width || !height) return;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    dirty = true;
+  }
+  new ResizeObserver(resize).observe(stage);
+  controls.addEventListener('change', () => { dirty = true; });
+  controls.addEventListener('start', () => {
+    if (viewKey) { viewKey = null; syncButtons(); }
+  });
+
+  function frame(now) {
+    if (tween) {
+      const raw = tween.ms ? Math.min((now - tween.start) / tween.ms, 1) : 1;
+      const eased = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+      parts.forEach((part) => part.mesh.position.lerpVectors(part.from, part.to, eased));
+      camera.position.lerpVectors(tween.camFrom, tween.camTo, eased);
+      controls.target.lerpVectors(tween.targetFrom, tween.targetTo, eased);
+      controls.update();
+      if (raw >= 1) tween = null;
+      dirty = true;
+    }
+    if (dirty) { renderer.render(scene, camera); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+  applyView('front34', false);
+  requestAnimationFrame(frame);
+})();
+</script>

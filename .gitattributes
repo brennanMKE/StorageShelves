@@ -1,0 +1,27 @@
+# Normalize text files to LF in the repository.
+* text=auto eol=lf
+
+# Source and text
+*.py    text diff=python
+*.md    text
+*.html  text
+*.json  text
+
+# Binary: plans, reference images, renders
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+
+# CAD exports. STEP is ASCII but machine-generated and large; store as-is,
+# never convert line endings, and skip text diffs.
+*.step  binary
+*.stp   binary
+*.stl   binary
+*.3mf   binary
+
+# Generated viewer pages embed multi-MB geometry on a single line.
+# Keep LF normalization but suppress unreadable diffs.
+output/*_viewer.html  text eol=lf -diff linguist-generated=true

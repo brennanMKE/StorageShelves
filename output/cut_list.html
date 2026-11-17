@@ -1,0 +1,415 @@
+<title>Shelf &amp; Tote Cut List</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: shop ticket. Measured stock up top, then per-build cut tables, stock breakdowns, hardware. */
+:root {
+  --bg: #f3f5f6;
+  --surface: #ffffff;
+  --ink: #18222b;
+  --muted: #5a6872;
+  --line: #d4dbe0;
+  --accent: #1d5f8c;        /* blueprint blue */
+  --maple: #d9b77c;         /* 3/4 maple ply */
+  --maple-thin: #ecd7ae;    /* 1/4 maple ply */
+  --pine: #c99a5b;          /* solid softwood */
+  --spare: #e3e8ea;
+  --warn-bg: #fff3d6;
+  --warn-ink: #6b4a00;
+  --done: #2f7d4f;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Barlow", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11181d; --surface: #182229; --ink: #e3eaee; --muted: #93a3ad; --line: #2c3a43;
+    --accent: #6fb2e0; --maple: #a8854a; --maple-thin: #8a7350; --pine: #9a7340; --spare: #26323a;
+    --warn-bg: #3a2f12; --warn-ink: #f2d38a; --done: #6fcf97;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11181d; --surface: #182229; --ink: #e3eaee; --muted: #93a3ad; --line: #2c3a43;
+  --accent: #6fb2e0; --maple: #a8854a; --maple-thin: #8a7350; --pine: #9a7340; --spare: #26323a;
+  --warn-bg: #3a2f12; --warn-ink: #f2d38a; --done: #6fcf97;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+.wrap { max-width: 1100px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h1 { font-size: 40px; line-height: 1.05; }
+h2 { font-size: 26px; }
+h3 { font-size: 19px; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); }
+.eyebrow { font: 600 13px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+header { display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.chip { font: 500 13px var(--mono); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-variant-numeric: tabular-nums; }
+.chip.progress { border-color: var(--done); color: var(--done); }
+section { display: grid; gap: 14px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.measure { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.measure label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.measure label span.k { font: 500 12px var(--mono); color: var(--accent); }
+input[type=number] { font: 15px var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 9px; width: 100%; min-width: 0; }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: 600 14px var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.note { background: var(--warn-bg); color: var(--warn-ink); border-radius: 6px; padding: 10px 12px; font-size: 14px; }
+.changes { display: grid; gap: 6px; padding-left: 18px; margin: 0; font-size: 15px; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 600 12px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--bg); white-space: nowrap; }
+td.num { font-family: var(--mono); white-space: nowrap; }
+td.num small { display: block; color: var(--muted); font-size: 12px; }
+td.part { font-weight: 600; min-width: 130px; }
+td.notes { color: var(--muted); min-width: 220px; font-size: 13px; }
+td.ck { width: 36px; }
+td.ck input { width: 18px; height: 18px; accent-color: var(--done); cursor: pointer; }
+tr.is-done td:not(.ck) { opacity: .5; }
+tr.is-done td.part { text-decoration: line-through; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; border: 1px solid var(--line); }
+.est { font: 600 10px var(--mono); letter-spacing: .04em; text-transform: uppercase; background: var(--warn-bg); color: var(--warn-ink); padding: 1px 5px; border-radius: 3px; margin-left: 4px; white-space: nowrap; }
+.diagrams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 14px; }
+.diagram { display: grid; gap: 8px; min-width: 0; }
+.diagram svg { width: 100%; height: auto; display: block; }
+.diagram figcaption { font-size: 13px; color: var(--muted); }
+svg text { font-family: var(--mono); fill: var(--ink); }
+svg .sheet { fill: var(--spare); stroke: var(--muted); stroke-width: .15; }
+svg .blank { fill: none; stroke: var(--muted); stroke-width: .12; stroke-dasharray: .6 .4; }
+svg .p-thick { fill: var(--maple); stroke: var(--ink); stroke-width: .12; }
+svg .p-thin { fill: var(--maple-thin); stroke: var(--ink); stroke-width: .12; }
+svg .p-solid { fill: var(--pine); stroke: var(--ink); stroke-width: .12; }
+svg .p-spare { fill: var(--spare); stroke: var(--muted); stroke-width: .12; }
+svg .p-tote { fill: var(--maple); stroke: var(--accent); stroke-width: .25; }
+svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width: .25; }
+.bars { display: grid; gap: 6px; }
+.bar-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: center; }
+.bar-row .lbl { font-size: 13px; font-weight: 600; }
+@media (max-width: 560px) { .bar-row { grid-template-columns: 1fr; gap: 2px; } h1 { font-size: 32px; } }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); }
+.hw { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.hw .item { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--surface); display: grid; gap: 4px; }
+.hw .qty { font: 600 22px var(--display); }
+.hw .item p { font-size: 14px; color: var(--muted); }
+.status-pill { justify-self: start; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; padding: 2px 7px; border-radius: 3px; }
+.status-pill.have { background: color-mix(in srgb, var(--done) 18%, transparent); color: var(--done); }
+.status-pill.need { background: var(--warn-bg); color: var(--warn-ink); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <div class="eyebrow">Electronics workbench · cut list</div>
+    <h1>Shelf &amp; Tote Cut List</h1>
+    <p class="muted">Four shelf units and two soldering totes, cut from the delivered Lowe's order. Sizes come from the 3D models, which follow the plans plus your changes. All dimensions are in inches. Length is along the grain.</p>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <section class="panel" aria-labelledby="m-h">
+    <div class="row">
+      <h2 id="m-h">1. Measure the delivered stock</h2>
+      <button type="button" id="resetM">Reset to model values</button>
+    </div>
+    <p>Every size below recalculates from these numbers. The defaults are the values the model uses. Measure the actual sheets and milled stock with calipers before cutting, and type in what you find.</p>
+    <div class="measure">
+      <label for="in-t"><span class="k">t</span>¾ maple ply, actual thickness<input id="in-t" type="number" step="0.001" min="0.5" max="0.8"></label>
+      <label for="in-b"><span class="k">b</span>¼ maple ply, actual thickness<input id="in-b" type="number" step="0.001" min="0.15" max="0.3"></label>
+      <label for="in-p"><span class="k">p</span>2×2 planed square size<input id="in-p" type="number" step="0.001" min="1" max="1.5"></label>
+      <label for="in-n"><span class="k">n</span>Nosing strip thickness<input id="in-n" type="number" step="0.001" min="0.5" max="1"></label>
+      <label for="in-h"><span class="k">h</span>Caster mounting height<input id="in-h" type="number" step="0.01" min="1.5" max="4"></label>
+    </div>
+    <div class="note">Fit rails, nosings and decks to the assembled frame. The plan says to trust the actual span over decimal precision. Fractions are rounded to the nearest 1/32.</div>
+  </section>
+
+  <section class="panel" aria-labelledby="c-h">
+    <h2 id="c-h">Changes from the PDF plans</h2>
+    <ul class="changes">
+      <li>No caster pads (16) and no nosing glue tabs (24). The second 2×4 is now spare.</li>
+      <li>Casters screw up into the base from below. No through-bolts, nothing showing on the shelf.</li>
+      <li>All three rear rails stay: bottom rail, upper ledger, 1×2 top rail.</li>
+      <li>Tote handle is a 1 in round dowel in blind Forstner holes, replacing the ¾ × 1 rectangular handle. Corner cleats stay.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="s-h">
+    <div class="row">
+      <h2 id="s-h">2. Shelf units <span class="muted">× 4</span></h2>
+      <span class="muted" id="s-sum"></span>
+    </div>
+    <div class="table-wrap"><table id="t-shelf"></table></div>
+    <h3>Post housings <span class="muted">(⅛ deep, cut into the inside face of each post, measured from the post bottom)</span></h3>
+    <div class="table-wrap"><table id="t-housing"></table></div>
+  </section>
+
+  <section aria-labelledby="tt-h">
+    <div class="row">
+      <h2 id="tt-h">3. Soldering totes <span class="muted">× 2</span></h2>
+      <span class="muted" id="t-sum"></span>
+    </div>
+    <div class="table-wrap"><table id="t-tote"></table></div>
+  </section>
+
+  <section aria-labelledby="b-h">
+    <h2 id="b-h">4. Stock breakdown</h2>
+    <div class="legend">
+      <span><i class="swatch" style="background:var(--maple)"></i>¾ maple ply</span>
+      <span><i class="swatch" style="background:var(--maple-thin)"></i>¼ maple ply</span>
+      <span><i class="swatch" style="background:var(--pine)"></i>Solid softwood</span>
+      <span><i class="swatch" style="background:var(--maple);border-color:var(--accent)"></i>Tote part (blue outline)</span>
+      <span><i class="swatch" style="background:var(--spare)"></i>Spare / offcut</span>
+    </div>
+    <div class="diagrams" id="sheets"></div>
+    <div class="panel">
+      <h3>Solid stock, rough lengths</h3>
+      <p class="muted">Rough lengths come from the plan (p. 4 and 6) to allow for planing and snipe. Cut to the finished lengths in the tables after milling.</p>
+      <div class="bars" id="bars"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-h">
+    <h2 id="h-h">5. Hardware and supplies</h2>
+    <div class="hw" id="hw"></div>
+  </section>
+
+  <p class="muted" style="font-size:13px">Sources: <i>Plans for shelves.pdf</i> (17 Oct 2026), <i>Plans for tool totes.pdf</i> (18 Oct 2026), and the build123d models <code>shelf_unit.py</code> and <code>tote.py</code>. Items tagged <span class="est">estimate</span> are not fixed by the plans or the models; check them on the real parts.</p>
+</main>
+
+<script>
+const DEFAULTS = { t: 0.703, b: 0.25, p: 1.25, n: 0.75, h: 2.6 };
+const KEY = "shelfToteCutList.v1";
+const $ = id => document.getElementById(id);
+
+function frac(x) {
+  const n = Math.round(x * 32);
+  const w = Math.floor(n / 32);
+  let r = n % 32, d = 32;
+  if (!r) return `${w}"`;
+  while (r % 2 === 0) { r /= 2; d /= 2; }
+  return w ? `${w}-${r}/${d}"` : `${r}/${d}"`;
+}
+const dec = x => (Math.round(x * 1000) / 1000).toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+const dim = x => `${dec(x)}<small>${frac(x)}</small>`;
+const EST = '<span class="est">estimate</span>';
+
+let state = { v: { ...DEFAULTS }, done: {} };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v) state = { v: { ...DEFAULTS, ...s.v }, done: s.done || {} }; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+function compute(v) {
+  const { t, b, p, n, h } = v;
+  const W = 30, D = 15, H = 29.5, UPPER = 18, NOSE_H = 1.4375;
+  const I = W - 0.5 - 2 * t, d = D - n - b, L = H - h - t;
+  const rail = I - 2 * p + 0.25;
+  const shelfLow = h + t, ledgerTop = UPPER - t;
+  const shelf = [
+    { k: "base", name: "Base / lower shelf", q: 1, stock: "thick", L: W, W: D - n, T: t, note: "No notches. Casters screw into the underside." },
+    { k: "side", name: "Side panel", q: 2, stock: "thick", L: L, W: d, T: t, note: "Grain vertical. Stands on the base, outer face ¼ in in from the base edge." },
+    { k: "deck", name: "Upper shelf", q: 1, stock: "thick", L: I, W: d, T: t, note: `Notch both rear corners ${frac(p)} square for the posts. Top surface 18 in above the floor.` },
+    { k: "back", name: "Back", q: 1, stock: "thin", L: W - 0.5, W: L, T: b, note: "One piece, grain horizontal. Final-trim to the assembled frame." },
+    { k: "post", name: "Rear corner post", q: 2, stock: "2×2", L: L, W: p, T: p, note: "Stands on the base. Three housings, see table below." },
+    { k: "ledger", name: "Upper rear ledger", q: 1, stock: "2×2", L: rail, W: p, T: p, note: `Includes ⅛ in housing at each end. Top ${dec(ledgerTop)} in above floor.` },
+    { k: "brail", name: "Bottom rear rail", q: 1, stock: "2×2", L: rail, W: p, T: p, note: "Includes end housings. Rests on the base." },
+    { k: "cleat", name: "Upper side cleat", q: 2, stock: "2×2", L: d - p, W: p, T: p, note: "Runs from the front edge to the post. Top level with the ledger." },
+    { k: "trail", name: "Rear top rail", q: 1, stock: "1×2", L: rail, W: 1.5, T: 0.75, note: "Includes end housings. Top flush with the side tops." },
+    { k: "nose", name: "Nosing", q: 2, stock: "2×4", L: I, W: NOSE_H, T: n, estW: true, note: "Rises ½ in above the shelf. Round exposed edges with a router (about 3/16 R, radius is an estimate). Height comes from the board: 1-3/8 to 1-1/2." }
+  ];
+  const housings = [
+    { name: "Bottom rail", from: 0, to: p, wide: p },
+    { name: "Upper ledger", from: ledgerTop - p - shelfLow, to: ledgerTop - shelfLow, wide: p },
+    { name: "Rear top rail", from: L - 1.5, to: L, wide: 0.75, note: "Rear 3/4 of the post depth only" }
+  ];
+  // Tote
+  const s = b, E = 7.75, Hend = 9 - t, Il = 12.5 - 0.25 - 2 * t, J = E - 2 * s, BAY = (J - s) / 2;
+  const tote = [
+    { k: "tbase", name: "Flat base", q: 1, stock: "thick", L: 12.5, W: 8, T: t, note: "End and wall footprint is centred with a ⅛ in overhang all round." },
+    { k: "tend", name: "Shaped end panel", q: 2, stock: "thick", L: Hend, W: E, T: t, note: `Straight sides 3¼ high, tapering to a 3 in flat top, centred. Round corners about ⅛ R (estimate). 1 in Forstner hole, ¼ deep on the inside face, centred across, ${dec(7.875 - t)} in above the panel bottom.` },
+    { k: "twall", name: "Front / back wall", q: 2, stock: "thin", L: Il, W: 3, T: s, note: "Fits between the end panels, flush with their edges." },
+    { k: "tdiv", name: "Long centre divider", q: 1, stock: "thin", L: Il, W: 2.75, T: s, note: `Centred. Leaves two ${dec(BAY)} in bays.` },
+    { k: "tshort", name: "Short divider", q: 2, stock: "thin", L: BAY, W: 2.75, T: s, note: "One per bay. Model places them 7 in from the left end; move to suit contents." },
+    { k: "tcleat", name: "Inside corner cleat", q: 4, stock: "2×2 rip", L: 2.5, W: 1.125, T: 0.5, note: "2.5 high × 1⅛ into the bay × ½ along the tote. Rip from a spare 2×2." },
+    { k: "thandle", name: "Handle", q: 1, stock: "dowel", L: Il + 0.5, W: 1, T: 1, round: true, note: "1 in round dowel. Seats ¼ in into each end panel. One screw through each end into it." }
+  ];
+  return { I, d, L, rail, t, b, p, n, shelf, housings, tote, Il, BAY, Hend, E, s };
+}
+
+const STOCK = {
+  "thick": ["var(--maple)", "¾ maple ply"],
+  "thin": ["var(--maple-thin)", "¼ maple ply"],
+  "2×2": ["var(--pine)", "2×2 furring, planed"],
+  "2×2 rip": ["var(--pine)", "2×2 offcut, ripped"],
+  "1×2": ["var(--pine)", "1×2 clear pine"],
+  "2×4": ["var(--pine)", "2×4, ripped ¾"],
+  "dowel": ["var(--pine)", "1 in dowel"]
+};
+
+function partTable(prefix, rows, mult) {
+  const head = `<thead><tr><th></th><th>Part</th><th>Per</th><th>Total</th><th>Length</th><th>Width</th><th>Thick</th><th>Stock</th><th>Notes</th></tr></thead>`;
+  const body = rows.map(r => {
+    const id = `${prefix}-${r.k}`;
+    const done = !!state.done[id];
+    const [col, label] = STOCK[r.stock];
+    const wCell = r.round ? `Ø ${dim(r.W)}` : dim(r.W) + (r.estW ? EST : "");
+    const tCell = r.round ? "—" : dim(r.T);
+    return `<tr class="${done ? "is-done" : ""}">
+      <td class="ck"><input type="checkbox" id="${id}" data-done="${id}" ${done ? "checked" : ""} aria-label="${r.name} cut"></td>
+      <td class="part">${r.name}</td>
+      <td class="num">${r.q}</td>
+      <td class="num"><b>${r.q * mult}</b></td>
+      <td class="num">${dim(r.L)}</td>
+      <td class="num">${wCell}</td>
+      <td class="num">${tCell}</td>
+      <td><i class="swatch" style="background:${col}"></i>${label}</td>
+      <td class="notes">${r.note}</td></tr>`;
+  }).join("");
+  return head + `<tbody>${body}</tbody>`;
+}
+
+// ---------- SVG helpers (units are inches) ----------
+const rect = (x, y, w, h, cls, label, fs = 1.5) => {
+  let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${cls}"/>`;
+  if (label) {
+    const lines = label.split("\n");
+    const size = Math.min(fs, h / (lines.length * 1.35), w / (Math.max(...lines.map(l => l.length)) * 0.62));
+    lines.forEach((ln, i) => {
+      const yy = y + h / 2 + (i - (lines.length - 1) / 2) * size * 1.25 + size * 0.35;
+      s += `<text x="${x + w / 2}" y="${yy}" font-size="${size}" text-anchor="middle">${ln}</text>`;
+    });
+  }
+  return s;
+};
+const notched = (x, y, w, h, p) =>
+  `<path class="p-thick" d="M${x} ${y + p} H${x + p} V${y} H${x + w - p} V${y + p} H${x + w} V${y + h} H${x} Z"/>`;
+
+function thickSheet(c, n, toteNo) {
+  const BW = 31.5, BH = 14.5, gx = 32.1, gy = 15.6, ox = 0.3, oy = 0.6;
+  const plan = [["side", "side", "base"], ["side", "side", "deck"], ["base", "deck", "tote"]];
+  let g = `<rect x="0" y="0" width="96" height="48" class="sheet"/>`;
+  plan.forEach((row, r) => row.forEach((kind, col) => {
+    const x = ox + col * gx, y = oy + r * gy;
+    g += `<rect x="${x}" y="${y}" width="${BW}" height="${BH}" class="blank"/>`;
+    const px = x + 0.25, py = y + 0.25;
+    if (kind === "side") g += rect(px, py, c.L, c.d, "p-thick", `SIDE\n${dec(c.L)} × ${dec(c.d)}`);
+    if (kind === "base") g += rect(px, py, 30, 15 - c.n, "p-thick", `BASE\n30 × ${dec(15 - c.n)}`);
+    if (kind === "deck") {
+      g += notched(px, py, c.I, c.d, c.p);
+      g += rect(px, py, c.I, c.d, "", `UPPER SHELF\n${dec(c.I)} × ${dec(c.d)}`).replace(/<rect[^>]*\/>/, "");
+    }
+    if (kind === "tote") {
+      g += rect(px, py, 12.5, 8, "p-tote", `TOTE ${toteNo}\nBASE`, 1.3);
+      g += rect(px + 12.75, py, c.Hend, c.E, "p-tote", `END`, 1.3);
+      g += rect(px + 12.75 + c.Hend + 0.25, py, c.Hend, c.E, "p-tote", `END`, 1.3);
+    }
+  }));
+  return `<figure class="diagram"><svg viewBox="-0.5 -0.5 97 49" role="img" aria-label="¾ maple sheet ${n} layout">${g}</svg>
+    <figcaption><b>¾ maple sheet ${n} of 2.</b> Rip three 14½ rows across, then crosscut each into 31½ blanks (grain along 31½). 4 sides, 2 bases, 2 upper shelves, plus tote ${toteNo}.</figcaption></figure>`;
+}
+
+function thinSheet(c, n, toteNo) {
+  let g = `<rect x="0" y="0" width="96" height="48" class="sheet"/>`;
+  g += `<line x1="0" y1="27.1" x2="96" y2="27.1" stroke="var(--muted)" stroke-width=".15" stroke-dasharray=".8 .5"/>`;
+  for (let i = 0; i < 3; i++) {
+    const x = 0.1 + i * 30.2;
+    g += `<rect x="${x}" y="0.05" width="30" height="27" class="blank"/>`;
+    if (i < 2) g += rect(x + 0.25, 0.4, 29.5, c.L, "p-thin", `BACK\n29.5 × ${dec(c.L)}`);
+  }
+  const x0 = 60.75, y0 = 0.4;
+  g += rect(x0, y0, c.Il, 3, "p-tote-thin", "WALL", 1.2);
+  g += rect(x0, y0 + 3.2, c.Il, 3, "p-tote-thin", "WALL", 1.2);
+  g += rect(x0, y0 + 6.4, c.Il, 2.75, "p-tote-thin", "DIVIDER", 1.2);
+  g += rect(x0 + c.Il + 0.25, y0, c.BAY, 2.75, "p-tote-thin", "SHORT", 0.9);
+  g += rect(x0 + c.Il + 0.25, y0 + 2.95, c.BAY, 2.75, "p-tote-thin", "SHORT", 0.9);
+  g += `<text x="${x0 + 14}" y="${y0 + 17}" font-size="1.4" text-anchor="middle" fill="var(--muted)">Tote ${toteNo} parts · rest spare</text>`;
+  g += `<text x="48" y="38" font-size="2" text-anchor="middle">Spare strip, about 21 × 96</text>`;
+  return `<figure class="diagram"><svg viewBox="-0.5 -0.5 97 49" role="img" aria-label="¼ maple sheet ${n} layout">${g}</svg>
+    <figcaption><b>¼ maple sheet ${n} of 2.</b> Rip a 27 × 96 band, crosscut three 30 × 27 blanks (grain along 30). Two backs, plus the walls and dividers for tote ${toteNo}.</figcaption></figure>`;
+}
+
+function bar(segs) {
+  let x = 0, g = `<rect x="0" y="0" width="96" height="4" class="sheet"/>`;
+  segs.forEach(([len, label, cls]) => {
+    g += rect(x, 0.3, len, 3.4, cls || "p-solid", label, 1.6);
+    x += len + 0.4;
+  });
+  return `<svg viewBox="-0.3 -0.3 96.6 4.6" role="img">${g}</svg>`;
+}
+
+function bars(c) {
+  const post = 27.25, rail = 26.75, cleat = 13.25;
+  const rows = [
+    ["2×2 · boards 1–4", [[post, "POST"], [post, "POST"], [rail, "RAIL"], [cleat, "CLEAT"]]],
+    ["2×2 · boards 5–6", [[rail, "RAIL"], [rail, "RAIL"], [cleat, "CLEAT"], [cleat, "CLEAT"]]],
+    ["2×2 · board 7", [[12, "TOTE CLEATS"], [83.6, "spare", "p-spare"]]],
+    ["2×2 · board 8", [[96, "spare (for defects)", "p-spare"]]],
+    ["1×2 × 4′ · boards 1–4", [[rail, "TOP RAIL"], [20.85, "offcut", "p-spare"]], 48],
+    ["2×4 #1 · strips 1–2", [[31, "NOSING"], [31, "NOSING"], [31, "NOSING"]]],
+    ["2×4 #1 · strip 3", [[31, "NOSING"], [31, "NOSING"], [31, "spare", "p-spare"]]],
+    ["2×4 #2", [[96, "spare (caster pads removed)", "p-spare"]]]
+  ];
+  return rows.map(([lbl, segs, len]) => {
+    let svg = bar(segs);
+    if (len === 48) svg = svg.replace('width="96" height="4" class="sheet"', 'width="48" height="4" class="sheet"');
+    return `<div class="bar-row"><div class="lbl">${lbl}</div><div>${svg}</div></div>`;
+  }).join("") +
+  `<p class="muted" style="font-size:14px">Plane the 2×2s to ${frac(c.p)} square before cutting to final length. Boards 1–6 give 8 posts, 8 square rails (4 ledgers, 4 bottom rails) and 8 cleats. For tote cleats, cut a 12 in piece from board 7 and rip two 1⅛ × ½ strips; each strip gives four 2½ in cleats. Rip three ¾ strips from the 3½ face of 2×4 #1; strips 1 and 2 give three nosings each, strip 3 gives two. Rough 31 in sections fit in the car.</p>`;
+}
+
+function hardware() {
+  const items = [
+    ["96", "#8 × 1¼ wood screws", "72 for the shelves (18 each) plus 24 for the totes (12 each). The 200-count box covers it.", "have"],
+    ["16", "2 in casters", "8 swivel/brake and 8 rigid. Rigid pair on one end, swivel pair on the other, per unit.", "have"],
+    ["64", "Caster mounting screws", "4 per caster, driven up into the base. #10 × ⅝ pan head is an estimate: match the plate holes and keep the tip inside the ¾ base.", "need"],
+    ["~24 in", "1 in round dowel", "Two tote handles. Not on the shelf purchase list.", "need"],
+    ["—", "Wood glue, finish, abrasives", "Every joint is glued; screws only position and reinforce. Shop supplies, not on the cart.", "need"]
+  ];
+  return items.map(([q, name, desc, st]) => `<div class="item"><span class="status-pill ${st}">${st === "have" ? "Delivered" : "Check / buy"}</span><div class="qty">${q}</div><b>${name}</b><p>${desc}</p></div>`).join("");
+}
+
+function render() {
+  const c = compute(state.v);
+  $("t-shelf").innerHTML = partTable("s", c.shelf, 4);
+  $("t-tote").innerHTML = partTable("t", c.tote, 2);
+  $("t-housing").innerHTML = `<thead><tr><th>Housing for</th><th>From</th><th>To</th><th>Width</th><th>Notes</th></tr></thead><tbody>` +
+    c.housings.map(hh => `<tr><td class="part">${hh.name}</td><td class="num">${dim(hh.from)}</td><td class="num">${dim(hh.to)}</td><td class="num">${dim(hh.wide)}</td><td class="notes">${hh.note || "Full post depth"}</td></tr>`).join("") + `</tbody>`;
+  $("sheets").innerHTML = thickSheet(c, 1, 1) + thickSheet(c, 2, 2) + thinSheet(c, 1, 1) + thinSheet(c, 2, 2);
+  $("bars").innerHTML = bars(c);
+  $("hw").innerHTML = hardware();
+  const shelfParts = c.shelf.reduce((a, r) => a + r.q, 0), toteParts = c.tote.reduce((a, r) => a + r.q, 0);
+  $("s-sum").textContent = `${shelfParts} parts per unit · ${shelfParts * 4} total`;
+  $("t-sum").textContent = `${toteParts} parts per tote · ${toteParts * 2} total`;
+  const rows = c.shelf.length + c.tote.length;
+  const doneRows = [...c.shelf.map(r => "s-" + r.k), ...c.tote.map(r => "t-" + r.k)].filter(k => state.done[k]).length;
+  $("chips").innerHTML = `<span class="chip">4 shelf units · 30 × 15 × 29½</span><span class="chip">2 totes · 12½ × 8 × 9</span><span class="chip">${shelfParts * 4 + toteParts * 2} wood parts</span><span class="chip progress">${doneRows} of ${rows} part types cut</span>`;
+}
+
+["t", "b", "p", "n", "h"].forEach(k => {
+  const inp = $("in-" + k);
+  inp.value = state.v[k];
+  inp.addEventListener("input", () => {
+    const val = parseFloat(inp.value);
+    if (!isNaN(val) && val > 0) { state.v[k] = val; save(); render(); }
+  });
+});
+$("resetM").addEventListener("click", () => {
+  state.v = { ...DEFAULTS };
+  ["t", "b", "p", "n", "h"].forEach(k => $("in-" + k).value = state.v[k]);
+  save(); render();
+});
+document.addEventListener("change", e => {
+  const id = e.target.dataset && e.target.dataset.done;
+  if (!id) return;
+  state.done[id] = e.target.checked;
+  save(); render();
+});
+render();
+</script>
