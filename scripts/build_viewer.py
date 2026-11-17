@@ -20,11 +20,12 @@ wood, screws, casters = ns["wood"], ns["screws"], ns["casters"]
 COLORS = {
     "ply": "#e3be8a", "back": "#dcb47e", "frame": "#d9ae73", "pine": "#e8cfa0",
     "trim": "#d3a262", "pad": "#c8975a", "screw": "#7b8085", "bolt": "#6d7276",
-    "steel": "#b9bec2", "tire": "#222222",
+    "steel": "#b9bec2", "tire": "#222222", "engrave": "#4a2e17",
 }
 WOOD = [
     (r"^base$", "Base / lower shelf", "ply", "ply", 1),
     (r"^side_", "Side panel", "ply", "ply", 2),
+    (r"^logo_", "Laser-engraved logo (tree mark, 0.2 mm deep)", "engrave", "ply", 2),
     (r"^back$", "One-piece back", "back", "ply", 1),
     (r"^upper_shelf$", "Upper shelf", "ply", "ply", 1),
     (r"^post_", "Rear corner post", "frame", "wood", 2),

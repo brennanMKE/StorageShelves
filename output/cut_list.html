@@ -2,9 +2,9 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: shop ticket. Measured stock up top, then per-build cut tables, stock breakdowns, hardware. */
+/* Layout: shop ticket. Measured stock, beginner callout, label key + shared build tracker, cut tables, stock breakdowns, hardware. */
 :root {
   --bg: #f3f5f6;
   --surface: #ffffff;
@@ -16,6 +16,7 @@
   --maple-thin: #ecd7ae;    /* 1/4 maple ply */
   --pine: #c99a5b;          /* solid softwood */
   --spare: #e3e8ea;
+  --tape: #4aa3df;          /* painter's tape */
   --warn-bg: #fff3d6;
   --warn-ink: #6b4a00;
   --done: #2f7d4f;
@@ -27,14 +28,14 @@
   :root:not([data-theme="light"]) {
     --bg: #11181d; --surface: #182229; --ink: #e3eaee; --muted: #93a3ad; --line: #2c3a43;
     --accent: #6fb2e0; --maple: #a8854a; --maple-thin: #8a7350; --pine: #9a7340; --spare: #26323a;
-    --warn-bg: #3a2f12; --warn-ink: #f2d38a; --done: #6fcf97;
+    --tape: #3b86b8; --warn-bg: #3a2f12; --warn-ink: #f2d38a; --done: #6fcf97;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #11181d; --surface: #182229; --ink: #e3eaee; --muted: #93a3ad; --line: #2c3a43;
   --accent: #6fb2e0; --maple: #a8854a; --maple-thin: #8a7350; --pine: #9a7340; --spare: #26323a;
-  --warn-bg: #3a2f12; --warn-ink: #f2d38a; --done: #6fcf97;
+  --tape: #3b86b8; --warn-bg: #3a2f12; --warn-ink: #f2d38a; --done: #6fcf97;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -59,11 +60,15 @@ section { display: grid; gap: 14px; min-width: 0; }
 .measure label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .measure label span.k { font: 500 12px var(--mono); color: var(--accent); }
 input[type=number] { font: 15px var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 9px; width: 100%; min-width: 0; }
+input:disabled { opacity: .7; }
 input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button { font: 600 14px var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
-button:hover { border-color: var(--accent); }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { cursor: default; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
 .note { background: var(--warn-bg); color: var(--warn-ink); border-radius: 6px; padding: 10px 12px; font-size: 14px; }
+.sync { font-size: 13px; color: var(--muted); }
+.sync b { color: var(--ink); }
 .changes { display: grid; gap: 6px; padding-left: 18px; margin: 0; font-size: 15px; }
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
@@ -74,14 +79,12 @@ td.num { font-family: var(--mono); white-space: nowrap; }
 td.num small { display: block; color: var(--muted); font-size: 12px; }
 td.part { font-weight: 600; min-width: 130px; }
 td.notes { color: var(--muted); min-width: 220px; font-size: 13px; }
-td.ck { width: 36px; }
-td.ck input { width: 18px; height: 18px; accent-color: var(--done); cursor: pointer; }
-tr.is-done td:not(.ck) { opacity: .5; }
-tr.is-done td.part { text-decoration: line-through; }
+td.lbl { white-space: nowrap; }
+.tag { display: inline-block; font: 700 13px var(--mono); background: var(--tape); color: #fff; padding: 1px 6px; border-radius: 2px; margin: 0 3px 3px 0; }
 .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; border: 1px solid var(--line); }
 .est { font: 600 10px var(--mono); letter-spacing: .04em; text-transform: uppercase; background: var(--warn-bg); color: var(--warn-ink); padding: 1px 5px; border-radius: 3px; margin-left: 4px; white-space: nowrap; }
 .diagrams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 14px; }
-.diagram { display: grid; gap: 8px; min-width: 0; }
+.diagram { display: grid; gap: 8px; min-width: 0; margin: 0; }
 .diagram svg { width: 100%; height: auto; display: block; }
 .diagram figcaption { font-size: 13px; color: var(--muted); }
 svg text { font-family: var(--mono); fill: var(--ink); }
@@ -94,7 +97,7 @@ svg .p-spare { fill: var(--spare); stroke: var(--muted); stroke-width: .12; }
 svg .p-tote { fill: var(--maple); stroke: var(--accent); stroke-width: .25; }
 svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width: .25; }
 .bars { display: grid; gap: 6px; }
-.bar-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: center; }
+.bar-row { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: center; }
 .bar-row .lbl { font-size: 13px; font-weight: 600; }
 @media (max-width: 560px) { .bar-row { grid-template-columns: 1fr; gap: 2px; } h1 { font-size: 32px; } }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); }
@@ -105,6 +108,37 @@ svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width:
 .status-pill { justify-self: start; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; padding: 2px 7px; border-radius: 3px; }
 .status-pill.have { background: color-mix(in srgb, var(--done) 18%, transparent); color: var(--done); }
 .status-pill.need { background: var(--warn-bg); color: var(--warn-ink); }
+.callout { border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-left: 6px solid var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); border-radius: 8px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.callout .eyebrow { margin-bottom: -8px; }
+.tips { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px 24px; }
+.tip { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.tip h3 { font-size: 18px; color: var(--accent); }
+.tip ul, .tip ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 15px; }
+.tip.feature { grid-column: 1 / -1; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+/* Label key */
+.key { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 14px; }
+.key-list { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: baseline; font-size: 15px; margin: 0; }
+.key-list dt { margin: 0; }
+.key-list dd { margin: 0; color: var(--muted); }
+.tape-demo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.tape { font: 700 22px var(--mono); background: var(--tape); color: #fff; padding: 6px 14px; transform: rotate(-2deg); border-radius: 2px; box-shadow: 0 1px 2px rgb(0 0 0 / .2); letter-spacing: .03em; }
+/* Tracker */
+.units { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+.unit { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.unit-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.unit-head h3 { font-size: 22px; }
+.unit-count { font: 500 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.unit.complete .unit-count { color: var(--done); font-weight: 700; }
+.meter { height: 6px; border-radius: 3px; background: var(--spare); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--done); transition: width .25s; }
+.plist { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.pbtn { display: grid; gap: 1px; text-align: left; padding: 7px 9px; min-height: 48px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); font-weight: 400; }
+.pbtn .code { font: 700 14px var(--mono); }
+.pbtn .what { font-size: 13px; color: var(--muted); line-height: 1.25; }
+.pbtn .who { font-size: 12px; color: var(--done); line-height: 1.25; }
+.pbtn[aria-pressed="true"] { border-color: var(--done); background: color-mix(in srgb, var(--done) 12%, var(--surface)); }
+.pbtn[aria-pressed="true"] .code::before { content: "✓ "; color: var(--done); }
+.pbtn.pending { opacity: .6; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -129,6 +163,7 @@ svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width:
       <label for="in-n"><span class="k">n</span>Nosing strip thickness<input id="in-n" type="number" step="0.001" min="0.5" max="1"></label>
       <label for="in-h"><span class="k">h</span>Caster mounting height<input id="in-h" type="number" step="0.01" min="1.5" max="4"></label>
     </div>
+    <p class="sync" id="m-sync"></p>
     <div class="note">Fit rails, nosings and decks to the assembled frame. The plan says to trust the actual span over decimal precision. Fractions are rounded to the nearest 1/32.</div>
   </section>
 
@@ -142,26 +177,122 @@ svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width:
     </ul>
   </section>
 
+  <aside class="callout" aria-labelledby="n-h">
+    <div class="eyebrow">Read before the first cut</div>
+    <h2 id="n-h">First furniture build? Start here</h2>
+    <p>These tips are for people building furniture for the first time. Most mistakes on a project like this come from measuring, cut order and glue-ups, not from the saw.</p>
+    <div class="tips">
+      <div class="tip feature">
+        <h3>Cut big parts oversize, then trim matching pairs together</h3>
+        <p>Cutting matching parts together is called gang-cutting. Both pieces come out identical, which matters more than hitting the exact decimal.</p>
+        <ol>
+          <li><b>Rough-cut blanks first.</b> Cut sides to about 27 × 14½ and bases to the plan's 31½ × 14½ blanks. Smaller pieces are easier and safer to handle.</li>
+          <li><b>Pair them up.</b> Stack the 2 sides for one unit (1-B1 with 1-B2). Each unit has only 1 base, so stack bases from 2 units that share a sheet (1-A1 with 2-A1). All 4 bases are the same size.</li>
+          <li><b>Line up one straight edge.</b> Keep a factory edge on each blank and set the pair flush on it. Hold them with clamps, double-sided tape, or 2 short screws in the waste area, outside the finished part.</li>
+          <li><b>Cut in order.</b> Rip to width off the factory edge first, then crosscut to length, square to that edge.</li>
+          <li><b>Label right away.</b> Put a tape label on each part and mark its good face before you unstack.</li>
+        </ol>
+        <p class="muted" style="font-size:14px">Don't gang-cut the upper shelves. Trim each one to fit its own assembled case. A stacked pair is about 1.4 in thick, which a table saw or track saw handles easily. With a circular saw, use a fine-tooth plywood blade and a straight guide.</p>
+      </div>
+      <div class="tip">
+        <h3>Measure and mark</h3>
+        <ul>
+          <li>Use one tape measure for the whole project. Two tapes can disagree by 1/16.</li>
+          <li>Mark with a sharp pencil or knife and a V-mark (a small arrow), not a thick line.</li>
+          <li>Cut on the waste side of the line. The blade removes about ⅛ in.</li>
+          <li>Where you can, mark parts from the real assembly instead of the tape. Hold a rail against the posts and mark it.</li>
+        </ul>
+      </div>
+      <div class="tip">
+        <h3>Plywood habits</h3>
+        <ul>
+          <li>Plywood splinters where the saw teeth exit. On a table saw, put the good face up. With a circular or track saw, put it down.</li>
+          <li>Blue painter's tape over the cut line reduces splintering on the maple face.</li>
+          <li>Support both sides of a cut so the offcut can't drop and tear the last inch.</li>
+          <li>Keep the good face to the outside on sides and up on shelves.</li>
+        </ul>
+      </div>
+      <div class="tip">
+        <h3>Practice on scrap</h3>
+        <ul>
+          <li>Make a test cut on an offcut and measure it before cutting a real part. This checks the fence and the blade.</li>
+          <li>Rout the nosing round-over on a spare piece of the 2×4 first.</li>
+          <li>Try the post housings on a scrap of planed 2×2 until a rail fits snugly with hand pressure.</li>
+          <li>Drill the 1 in Forstner hole in scrap and test the dowel fit.</li>
+        </ul>
+      </div>
+      <div class="tip">
+        <h3>Dry-fit, then glue</h3>
+        <ul>
+          <li>Assemble each unit with clamps and no glue first. Fix gaps before glue is involved.</li>
+          <li>Lay out every clamp you need before opening the glue. Most wood glue gives you 5–10 minutes.</li>
+          <li>Check square by measuring both diagonals. When they match, the case is square.</li>
+          <li>Wipe squeeze-out with a damp rag. Dried glue blocks the finish.</li>
+        </ul>
+      </div>
+      <div class="tip">
+        <h3>Screws</h3>
+        <ul>
+          <li>Drill a pilot hole for every screw. Without one, screws split solid wood and plywood edges.</li>
+          <li>Use a countersink so heads sit flush.</li>
+          <li>Set the drill clutch low so you don't strip the hole or sink the head too far.</li>
+          <li>Glue makes the joint. The screws only hold parts in place while it dries.</li>
+        </ul>
+      </div>
+      <div class="tip">
+        <h3>Work safely</h3>
+        <ul>
+          <li>Wear eye and hearing protection, and a dust mask when sanding or routing.</li>
+          <li>Use a push stick for any rip narrower than about 6 in, including the nosing strips.</li>
+          <li>Never cut freehand on a table saw. Every cut runs against the fence or a sled.</li>
+          <li>Don't plane pieces shorter than your planer's minimum length. Plane the 2×2s while they're long.</li>
+        </ul>
+      </div>
+    </div>
+  </aside>
+
+  <section aria-labelledby="k-h">
+    <h2 id="k-h">2. Part labels</h2>
+    <div class="panel">
+      <div class="tape-demo"><span class="tape">2-B1</span><span class="tape">T1-K2</span><p class="muted">Write <b>build number - part letter + number</b> on painter's tape with a Sharpie as soon as a part is cut. Shelves are builds 1–4. Totes are T1 and T2.</p></div>
+      <div class="key">
+        <dl class="key-list" id="key-shelf"></dl>
+        <dl class="key-list" id="key-tote"></dl>
+      </div>
+      <p class="muted" style="font-size:14px">Left and right are as seen from the front of the finished shelf. Put the tape on a face that will be hidden (inside of a side, underside of a shelf, back of a rail), and draw an arrow on it pointing to the front or top edge. Letters I, O and Q are skipped so they can't be read as 1 or 0. Keep each build's parts in its own stack or bin.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="tr-h">
+    <div class="row">
+      <h2 id="tr-h">3. Build tracker</h2>
+      <span class="chip progress" id="tr-total"></span>
+    </div>
+    <p>Tap a label once the part is cut and taped. Everyone with the page open sees it update, with who cut it and when. Tap again to undo.</p>
+    <p class="sync" id="tr-sync"></p>
+    <div class="units" id="units"></div>
+  </section>
+
   <section aria-labelledby="s-h">
     <div class="row">
-      <h2 id="s-h">2. Shelf units <span class="muted">× 4</span></h2>
+      <h2 id="s-h">4. Shelf units <span class="muted">× 4</span></h2>
       <span class="muted" id="s-sum"></span>
     </div>
     <div class="table-wrap"><table id="t-shelf"></table></div>
-    <h3>Post housings <span class="muted">(⅛ deep, cut into the inside face of each post, measured from the post bottom)</span></h3>
+    <h3>Post housings <span class="muted">(⅛ deep, cut into the inside face of each post E1/E2, measured from the post bottom)</span></h3>
     <div class="table-wrap"><table id="t-housing"></table></div>
   </section>
 
   <section aria-labelledby="tt-h">
     <div class="row">
-      <h2 id="tt-h">3. Soldering totes <span class="muted">× 2</span></h2>
+      <h2 id="tt-h">5. Soldering totes <span class="muted">× 2</span></h2>
       <span class="muted" id="t-sum"></span>
     </div>
     <div class="table-wrap"><table id="t-tote"></table></div>
   </section>
 
   <section aria-labelledby="b-h">
-    <h2 id="b-h">4. Stock breakdown</h2>
+    <h2 id="b-h">6. Stock breakdown</h2>
     <div class="legend">
       <span><i class="swatch" style="background:var(--maple)"></i>¾ maple ply</span>
       <span><i class="swatch" style="background:var(--maple-thin)"></i>¼ maple ply</span>
@@ -178,7 +309,7 @@ svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width:
   </section>
 
   <section aria-labelledby="h-h">
-    <h2 id="h-h">5. Hardware and supplies</h2>
+    <h2 id="h-h">7. Hardware and supplies</h2>
     <div class="hw" id="hw"></div>
   </section>
 
@@ -187,7 +318,9 @@ svg .p-tote-thin { fill: var(--maple-thin); stroke: var(--accent); stroke-width:
 
 <script>
 const DEFAULTS = { t: 0.703, b: 0.25, p: 1.25, n: 0.75, h: 2.6 };
-const KEY = "shelfToteCutList.v1";
+const KEYS = ["t", "b", "p", "n", "h"];
+const LS_M = "shelfToteCutList.v2.measure";
+const LS_P = "shelfToteCutList.v2.progress";
 const $ = id => document.getElementById(id);
 
 function frac(x) {
@@ -202,9 +335,44 @@ const dec = x => (Math.round(x * 1000) / 1000).toFixed(3).replace(/0+$/, "").rep
 const dim = x => `${dec(x)}<small>${frac(x)}</small>`;
 const EST = '<span class="est">estimate</span>';
 
-let state = { v: { ...DEFAULTS }, done: {} };
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v) state = { v: { ...DEFAULTS, ...s.v }, done: s.done || {} }; } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+// ---------- Part labels ----------
+const SHELF_LABELS = [
+  ["A", "base", [["A1", "Base"]]],
+  ["B", "side", [["B1", "Left side"], ["B2", "Right side"]]],
+  ["C", "deck", [["C1", "Upper shelf"]]],
+  ["D", "back", [["D1", "Back"]]],
+  ["E", "post", [["E1", "Left post"], ["E2", "Right post"]]],
+  ["F", "brail", [["F1", "Bottom rail"]]],
+  ["F", "ledger", [["F2", "Upper ledger"]]],
+  ["F", "trail", [["F3", "Top rail (1×2)"]]],
+  ["G", "cleat", [["G1", "Left cleat"], ["G2", "Right cleat"]]],
+  ["H", "nose", [["H1", "Lower nosing"], ["H2", "Upper nosing"]]]
+];
+const TOTE_LABELS = [
+  ["J", "tbase", [["J1", "Base"]]],
+  ["K", "tend", [["K1", "Left end"], ["K2", "Right end"]]],
+  ["L", "twall", [["L1", "Front wall"], ["L2", "Back wall"]]],
+  ["M", "tdiv", [["M1", "Long divider"]]],
+  ["N", "tshort", [["N1", "Front short divider"], ["N2", "Back short divider"]]],
+  ["P", "tcleat", [["P1", "Front-left cleat"], ["P2", "Front-right cleat"], ["P3", "Back-left cleat"], ["P4", "Back-right cleat"]]],
+  ["R", "thandle", [["R1", "Handle"]]]
+];
+const labelsFor = (table, k) => (table.find(r => r[1] === k) || [, , []])[2];
+const UNITS = [
+  ...[1, 2, 3, 4].map(n => ({ id: String(n), title: `Shelf ${n}`, parts: SHELF_LABELS.flatMap(r => r[2]) })),
+  ...[1, 2].map(n => ({ id: `T${n}`, title: `Tote T${n}`, parts: TOTE_LABELS.flatMap(r => r[2]) }))
+];
+const ALL_CODES = UNITS.flatMap(u => u.parts.map(([c]) => `${u.id}-${c}`));
+
+// ---------- State ----------
+let measure = { ...DEFAULTS };
+let progress = {};          // "2-B1" -> { by, at }
+let mode = "local";         // "local" | "loading" | "shared" | "readonly" | "offline"
+let db = null, user = null, myId = null;
+const pending = new Set();
+try { const m = JSON.parse(localStorage.getItem(LS_M)); if (m) measure = { ...DEFAULTS, ...m }; } catch (e) {}
+try { const p = JSON.parse(localStorage.getItem(LS_P)); if (p) progress = p; } catch (e) {}
+const saveLocal = () => { try { localStorage.setItem(LS_M, JSON.stringify(measure)); localStorage.setItem(LS_P, JSON.stringify(progress)); } catch (e) {} };
 
 function compute(v) {
   const { t, b, p, n, h } = v;
@@ -218,18 +386,17 @@ function compute(v) {
     { k: "deck", name: "Upper shelf", q: 1, stock: "thick", L: I, W: d, T: t, note: `Notch both rear corners ${frac(p)} square for the posts. Top surface 18 in above the floor.` },
     { k: "back", name: "Back", q: 1, stock: "thin", L: W - 0.5, W: L, T: b, note: "One piece, grain horizontal. Final-trim to the assembled frame." },
     { k: "post", name: "Rear corner post", q: 2, stock: "2×2", L: L, W: p, T: p, note: "Stands on the base. Three housings, see table below." },
-    { k: "ledger", name: "Upper rear ledger", q: 1, stock: "2×2", L: rail, W: p, T: p, note: `Includes ⅛ in housing at each end. Top ${dec(ledgerTop)} in above floor.` },
-    { k: "brail", name: "Bottom rear rail", q: 1, stock: "2×2", L: rail, W: p, T: p, note: "Includes end housings. Rests on the base." },
-    { k: "cleat", name: "Upper side cleat", q: 2, stock: "2×2", L: d - p, W: p, T: p, note: "Runs from the front edge to the post. Top level with the ledger." },
+    { k: "brail", name: "Bottom rear rail", q: 1, stock: "2×2", L: rail, W: p, T: p, note: "Includes ⅛ in housing at each end. Rests on the base." },
+    { k: "ledger", name: "Upper rear ledger", q: 1, stock: "2×2", L: rail, W: p, T: p, note: `Includes end housings. Top ${dec(ledgerTop)} in above floor.` },
     { k: "trail", name: "Rear top rail", q: 1, stock: "1×2", L: rail, W: 1.5, T: 0.75, note: "Includes end housings. Top flush with the side tops." },
-    { k: "nose", name: "Nosing", q: 2, stock: "2×4", L: I, W: NOSE_H, T: n, estW: true, note: "Rises ½ in above the shelf. Round exposed edges with a router (about 3/16 R, radius is an estimate). Height comes from the board: 1-3/8 to 1-1/2." }
+    { k: "cleat", name: "Upper side cleat", q: 2, stock: "2×2", L: d - p, W: p, T: p, note: "Runs from the front edge to the post. Top level with the ledger." },
+    { k: "nose", name: "Nosing", q: 2, stock: "2×4", L: I, W: NOSE_H, T: n, estW: true, note: "H1 on the base, H2 on the upper shelf. Rises ½ in above the shelf. Round exposed edges with a router (about 3/16 R, radius is an estimate). Height comes from the board: 1-3/8 to 1-1/2." }
   ];
   const housings = [
-    { name: "Bottom rail", from: 0, to: p, wide: p },
-    { name: "Upper ledger", from: ledgerTop - p - shelfLow, to: ledgerTop - shelfLow, wide: p },
-    { name: "Rear top rail", from: L - 1.5, to: L, wide: 0.75, note: "Rear 3/4 of the post depth only" }
+    { name: "Bottom rail F1", from: 0, to: p, wide: p },
+    { name: "Upper ledger F2", from: ledgerTop - p - shelfLow, to: ledgerTop - shelfLow, wide: p },
+    { name: "Rear top rail F3", from: L - 1.5, to: L, wide: 0.75, note: "Rear 3/4 of the post depth only" }
   ];
-  // Tote
   const s = b, E = 7.75, Hend = 9 - t, Il = 12.5 - 0.25 - 2 * t, J = E - 2 * s, BAY = (J - s) / 2;
   const tote = [
     { k: "tbase", name: "Flat base", q: 1, stock: "thick", L: 12.5, W: 8, T: t, note: "End and wall footprint is centred with a ⅛ in overhang all round." },
@@ -253,16 +420,15 @@ const STOCK = {
   "dowel": ["var(--pine)", "1 in dowel"]
 };
 
-function partTable(prefix, rows, mult) {
-  const head = `<thead><tr><th></th><th>Part</th><th>Per</th><th>Total</th><th>Length</th><th>Width</th><th>Thick</th><th>Stock</th><th>Notes</th></tr></thead>`;
+function partTable(rows, mult, table) {
+  const head = `<thead><tr><th>Label</th><th>Part</th><th>Per</th><th>Total</th><th>Length</th><th>Width</th><th>Thick</th><th>Stock</th><th>Notes</th></tr></thead>`;
   const body = rows.map(r => {
-    const id = `${prefix}-${r.k}`;
-    const done = !!state.done[id];
     const [col, label] = STOCK[r.stock];
     const wCell = r.round ? `Ø ${dim(r.W)}` : dim(r.W) + (r.estW ? EST : "");
     const tCell = r.round ? "—" : dim(r.T);
-    return `<tr class="${done ? "is-done" : ""}">
-      <td class="ck"><input type="checkbox" id="${id}" data-done="${id}" ${done ? "checked" : ""} aria-label="${r.name} cut"></td>
+    const tags = labelsFor(table, r.k).map(([c]) => `<span class="tag">${c}</span>`).join("");
+    return `<tr>
+      <td class="lbl">${tags}</td>
       <td class="part">${r.name}</td>
       <td class="num">${r.q}</td>
       <td class="num"><b>${r.q * mult}</b></td>
@@ -275,15 +441,24 @@ function partTable(prefix, rows, mult) {
   return head + `<tbody>${body}</tbody>`;
 }
 
+function keyList(table) {
+  const seen = new Map();
+  table.forEach(([letter, , items]) => items.forEach(([c, what]) => {
+    if (!seen.has(letter)) seen.set(letter, []);
+    seen.get(letter).push(`${c} ${what.toLowerCase()}`);
+  }));
+  return [...seen].map(([l, arr]) => `<dt><span class="tag">${l}</span></dt><dd>${arr.join(" · ")}</dd>`).join("");
+}
+
 // ---------- SVG helpers (units are inches) ----------
 const rect = (x, y, w, h, cls, label, fs = 1.5) => {
-  let s = `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${cls}"/>`;
+  let s = cls ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${cls}"/>` : "";
   if (label) {
     const lines = label.split("\n");
     const size = Math.min(fs, h / (lines.length * 1.35), w / (Math.max(...lines.map(l => l.length)) * 0.62));
     lines.forEach((ln, i) => {
       const yy = y + h / 2 + (i - (lines.length - 1) / 2) * size * 1.25 + size * 0.35;
-      s += `<text x="${x + w / 2}" y="${yy}" font-size="${size}" text-anchor="middle">${ln}</text>`;
+      s += `<text x="${x + w / 2}" y="${yy}" font-size="${size}" text-anchor="middle"${i === 0 ? ' font-weight="700"' : ""}>${ln}</text>`;
     });
   }
   return s;
@@ -291,77 +466,74 @@ const rect = (x, y, w, h, cls, label, fs = 1.5) => {
 const notched = (x, y, w, h, p) =>
   `<path class="p-thick" d="M${x} ${y + p} H${x + p} V${y} H${x + w - p} V${y + p} H${x + w} V${y + h} H${x} Z"/>`;
 
-function thickSheet(c, n, toteNo) {
+function thickSheet(c, n) {
+  const u1 = 2 * n - 1, u2 = 2 * n, tote = `T${n}`;
   const BW = 31.5, BH = 14.5, gx = 32.1, gy = 15.6, ox = 0.3, oy = 0.6;
-  const plan = [["side", "side", "base"], ["side", "side", "deck"], ["base", "deck", "tote"]];
+  const plan = [
+    [["side", `${u1}-B1`], ["side", `${u1}-B2`], ["base", `${u1}-A1`]],
+    [["side", `${u2}-B1`], ["side", `${u2}-B2`], ["deck", `${u1}-C1`]],
+    [["base", `${u2}-A1`], ["deck", `${u2}-C1`], ["tote", tote]]
+  ];
   let g = `<rect x="0" y="0" width="96" height="48" class="sheet"/>`;
-  plan.forEach((row, r) => row.forEach((kind, col) => {
+  plan.forEach((row, r) => row.forEach(([kind, code], col) => {
     const x = ox + col * gx, y = oy + r * gy;
     g += `<rect x="${x}" y="${y}" width="${BW}" height="${BH}" class="blank"/>`;
     const px = x + 0.25, py = y + 0.25;
-    if (kind === "side") g += rect(px, py, c.L, c.d, "p-thick", `SIDE\n${dec(c.L)} × ${dec(c.d)}`);
-    if (kind === "base") g += rect(px, py, 30, 15 - c.n, "p-thick", `BASE\n30 × ${dec(15 - c.n)}`);
-    if (kind === "deck") {
-      g += notched(px, py, c.I, c.d, c.p);
-      g += rect(px, py, c.I, c.d, "", `UPPER SHELF\n${dec(c.I)} × ${dec(c.d)}`).replace(/<rect[^>]*\/>/, "");
-    }
+    if (kind === "side") g += rect(px, py, c.L, c.d, "p-thick", `${code}\nSIDE ${dec(c.L)} × ${dec(c.d)}`);
+    if (kind === "base") g += rect(px, py, 30, 15 - c.n, "p-thick", `${code}\nBASE 30 × ${dec(15 - c.n)}`);
+    if (kind === "deck") { g += notched(px, py, c.I, c.d, c.p); g += rect(px, py, c.I, c.d, "", `${code}\nUPPER SHELF ${dec(c.I)} × ${dec(c.d)}`); }
     if (kind === "tote") {
-      g += rect(px, py, 12.5, 8, "p-tote", `TOTE ${toteNo}\nBASE`, 1.3);
-      g += rect(px + 12.75, py, c.Hend, c.E, "p-tote", `END`, 1.3);
-      g += rect(px + 12.75 + c.Hend + 0.25, py, c.Hend, c.E, "p-tote", `END`, 1.3);
+      g += rect(px, py, 12.5, 8, "p-tote", `${code}-J1\nBASE`, 1.3);
+      g += rect(px + 12.75, py, c.Hend, c.E, "p-tote", `${code}-K1\nEND`, 1.1);
+      g += rect(px + 12.75 + c.Hend + 0.25, py, c.Hend, c.E, "p-tote", `${code}-K2\nEND`, 1.1);
     }
   }));
   return `<figure class="diagram"><svg viewBox="-0.5 -0.5 97 49" role="img" aria-label="¾ maple sheet ${n} layout">${g}</svg>
-    <figcaption><b>¾ maple sheet ${n} of 2.</b> Rip three 14½ rows across, then crosscut each into 31½ blanks (grain along 31½). 4 sides, 2 bases, 2 upper shelves, plus tote ${toteNo}.</figcaption></figure>`;
+    <figcaption><b>¾ maple sheet ${n} of 2: shelves ${u1} and ${u2}, tote ${tote}.</b> Rip three 14½ rows across, then crosscut each into 31½ blanks (grain along 31½).</figcaption></figure>`;
 }
 
-function thinSheet(c, n, toteNo) {
+function thinSheet(c, n) {
+  const u1 = 2 * n - 1, u2 = 2 * n, tote = `T${n}`;
   let g = `<rect x="0" y="0" width="96" height="48" class="sheet"/>`;
   g += `<line x1="0" y1="27.1" x2="96" y2="27.1" stroke="var(--muted)" stroke-width=".15" stroke-dasharray=".8 .5"/>`;
-  for (let i = 0; i < 3; i++) {
+  [u1, u2].forEach((u, i) => {
     const x = 0.1 + i * 30.2;
     g += `<rect x="${x}" y="0.05" width="30" height="27" class="blank"/>`;
-    if (i < 2) g += rect(x + 0.25, 0.4, 29.5, c.L, "p-thin", `BACK\n29.5 × ${dec(c.L)}`);
-  }
+    g += rect(x + 0.25, 0.4, 29.5, c.L, "p-thin", `${u}-D1\nBACK 29.5 × ${dec(c.L)}`);
+  });
+  g += `<rect x="60.5" y="0.05" width="30" height="27" class="blank"/>`;
   const x0 = 60.75, y0 = 0.4;
-  g += rect(x0, y0, c.Il, 3, "p-tote-thin", "WALL", 1.2);
-  g += rect(x0, y0 + 3.2, c.Il, 3, "p-tote-thin", "WALL", 1.2);
-  g += rect(x0, y0 + 6.4, c.Il, 2.75, "p-tote-thin", "DIVIDER", 1.2);
-  g += rect(x0 + c.Il + 0.25, y0, c.BAY, 2.75, "p-tote-thin", "SHORT", 0.9);
-  g += rect(x0 + c.Il + 0.25, y0 + 2.95, c.BAY, 2.75, "p-tote-thin", "SHORT", 0.9);
-  g += `<text x="${x0 + 14}" y="${y0 + 17}" font-size="1.4" text-anchor="middle" fill="var(--muted)">Tote ${toteNo} parts · rest spare</text>`;
+  g += rect(x0, y0, c.Il, 3, "p-tote-thin", `${tote}-L1 WALL`, 1.1);
+  g += rect(x0, y0 + 3.2, c.Il, 3, "p-tote-thin", `${tote}-L2 WALL`, 1.1);
+  g += rect(x0, y0 + 6.4, c.Il, 2.75, "p-tote-thin", `${tote}-M1 DIVIDER`, 1.1);
+  g += rect(x0 + c.Il + 0.25, y0, c.BAY, 2.75, "p-tote-thin", `${tote}-N1`, 0.8);
+  g += rect(x0 + c.Il + 0.25, y0 + 2.95, c.BAY, 2.75, "p-tote-thin", `${tote}-N2`, 0.8);
+  g += `<text x="${x0 + 14}" y="${y0 + 17}" font-size="1.4" text-anchor="middle" fill="var(--muted)">rest of blank spare</text>`;
   g += `<text x="48" y="38" font-size="2" text-anchor="middle">Spare strip, about 21 × 96</text>`;
   return `<figure class="diagram"><svg viewBox="-0.5 -0.5 97 49" role="img" aria-label="¼ maple sheet ${n} layout">${g}</svg>
-    <figcaption><b>¼ maple sheet ${n} of 2.</b> Rip a 27 × 96 band, crosscut three 30 × 27 blanks (grain along 30). Two backs, plus the walls and dividers for tote ${toteNo}.</figcaption></figure>`;
+    <figcaption><b>¼ maple sheet ${n} of 2: backs for shelves ${u1} and ${u2}, tote ${tote} walls and dividers.</b> Rip a 27 × 96 band, crosscut three 30 × 27 blanks (grain along 30).</figcaption></figure>`;
 }
 
-function bar(segs) {
-  let x = 0, g = `<rect x="0" y="0" width="96" height="4" class="sheet"/>`;
-  segs.forEach(([len, label, cls]) => {
-    g += rect(x, 0.3, len, 3.4, cls || "p-solid", label, 1.6);
-    x += len + 0.4;
-  });
+function bar(segs, total = 96) {
+  let x = 0, g = `<rect x="0" y="0" width="${total}" height="4" class="sheet"/>`;
+  segs.forEach(([len, label, cls]) => { g += rect(x, 0.3, len, 3.4, cls || "p-solid", label, 1.6); x += len + 0.4; });
   return `<svg viewBox="-0.3 -0.3 96.6 4.6" role="img">${g}</svg>`;
 }
 
 function bars(c) {
   const post = 27.25, rail = 26.75, cleat = 13.25;
   const rows = [
-    ["2×2 · boards 1–4", [[post, "POST"], [post, "POST"], [rail, "RAIL"], [cleat, "CLEAT"]]],
-    ["2×2 · boards 5–6", [[rail, "RAIL"], [rail, "RAIL"], [cleat, "CLEAT"], [cleat, "CLEAT"]]],
-    ["2×2 · board 7", [[12, "TOTE CLEATS"], [83.6, "spare", "p-spare"]]],
+    ["2×2 · boards 1–4", [[post, "E POST"], [post, "E POST"], [rail, "F1/F2 RAIL"], [cleat, "G CLEAT"]]],
+    ["2×2 · boards 5–6", [[rail, "F1/F2 RAIL"], [rail, "F1/F2 RAIL"], [cleat, "G CLEAT"], [cleat, "G CLEAT"]]],
+    ["2×2 · board 7", [[12, "P CLEATS"], [83.6, "spare", "p-spare"]]],
     ["2×2 · board 8", [[96, "spare (for defects)", "p-spare"]]],
-    ["1×2 × 4′ · boards 1–4", [[rail, "TOP RAIL"], [20.85, "offcut", "p-spare"]], 48],
-    ["2×4 #1 · strips 1–2", [[31, "NOSING"], [31, "NOSING"], [31, "NOSING"]]],
-    ["2×4 #1 · strip 3", [[31, "NOSING"], [31, "NOSING"], [31, "spare", "p-spare"]]],
+    ["1×2 × 4′ · boards 1–4", [[rail, "F3 TOP RAIL"], [20.85, "offcut", "p-spare"]], 48],
+    ["2×4 #1 · strips 1–2", [[31, "H NOSING"], [31, "H NOSING"], [31, "H NOSING"]]],
+    ["2×4 #1 · strip 3", [[31, "H NOSING"], [31, "H NOSING"], [31, "spare", "p-spare"]]],
     ["2×4 #2", [[96, "spare (caster pads removed)", "p-spare"]]]
   ];
-  return rows.map(([lbl, segs, len]) => {
-    let svg = bar(segs);
-    if (len === 48) svg = svg.replace('width="96" height="4" class="sheet"', 'width="48" height="4" class="sheet"');
-    return `<div class="bar-row"><div class="lbl">${lbl}</div><div>${svg}</div></div>`;
-  }).join("") +
-  `<p class="muted" style="font-size:14px">Plane the 2×2s to ${frac(c.p)} square before cutting to final length. Boards 1–6 give 8 posts, 8 square rails (4 ledgers, 4 bottom rails) and 8 cleats. For tote cleats, cut a 12 in piece from board 7 and rip two 1⅛ × ½ strips; each strip gives four 2½ in cleats. Rip three ¾ strips from the 3½ face of 2×4 #1; strips 1 and 2 give three nosings each, strip 3 gives two. Rough 31 in sections fit in the car.</p>`;
+  return rows.map(([lbl, segs, len]) => `<div class="bar-row"><div class="lbl">${lbl}</div><div>${bar(segs, len || 96)}</div></div>`).join("") +
+  `<p class="muted" style="font-size:14px">Plane the 2×2s to ${frac(c.p)} square before cutting to final length. Boards 1–6 give 8 posts, 8 square rails (4 F1 bottom rails, 4 F2 ledgers) and 8 cleats. For tote cleats, cut a 12 in piece from board 7 and rip two 1⅛ × ½ strips; each strip gives four 2½ in cleats. Rip three ¾ strips from the 3½ face of 2×4 #1; strips 1 and 2 give three nosings each, strip 3 gives two. Rough 31 in sections fit in the car.</p>`;
 }
 
 function hardware() {
@@ -370,46 +542,181 @@ function hardware() {
     ["16", "2 in casters", "8 swivel/brake and 8 rigid. Rigid pair on one end, swivel pair on the other, per unit.", "have"],
     ["64", "Caster mounting screws", "4 per caster, driven up into the base. #10 × ⅝ pan head is an estimate: match the plate holes and keep the tip inside the ¾ base.", "need"],
     ["~24 in", "1 in round dowel", "Two tote handles. Not on the shelf purchase list.", "need"],
+    ["1 roll", "Painter's tape + Sharpie", "For the part labels. Blue tape peels cleanly off maple veneer.", "need"],
     ["—", "Wood glue, finish, abrasives", "Every joint is glued; screws only position and reinforce. Shop supplies, not on the cart.", "need"]
   ];
   return items.map(([q, name, desc, st]) => `<div class="item"><span class="status-pill ${st}">${st === "have" ? "Delivered" : "Check / buy"}</span><div class="qty">${q}</div><b>${name}</b><p>${desc}</p></div>`).join("");
 }
 
-function render() {
-  const c = compute(state.v);
-  $("t-shelf").innerHTML = partTable("s", c.shelf, 4);
-  $("t-tote").innerHTML = partTable("t", c.tote, 2);
+function renderStatic() {
+  const c = compute(measure);
+  $("t-shelf").innerHTML = partTable(c.shelf, 4, SHELF_LABELS);
+  $("t-tote").innerHTML = partTable(c.tote, 2, TOTE_LABELS);
   $("t-housing").innerHTML = `<thead><tr><th>Housing for</th><th>From</th><th>To</th><th>Width</th><th>Notes</th></tr></thead><tbody>` +
     c.housings.map(hh => `<tr><td class="part">${hh.name}</td><td class="num">${dim(hh.from)}</td><td class="num">${dim(hh.to)}</td><td class="num">${dim(hh.wide)}</td><td class="notes">${hh.note || "Full post depth"}</td></tr>`).join("") + `</tbody>`;
-  $("sheets").innerHTML = thickSheet(c, 1, 1) + thickSheet(c, 2, 2) + thinSheet(c, 1, 1) + thinSheet(c, 2, 2);
+  $("sheets").innerHTML = thickSheet(c, 1) + thickSheet(c, 2) + thinSheet(c, 1) + thinSheet(c, 2);
   $("bars").innerHTML = bars(c);
   $("hw").innerHTML = hardware();
   const shelfParts = c.shelf.reduce((a, r) => a + r.q, 0), toteParts = c.tote.reduce((a, r) => a + r.q, 0);
   $("s-sum").textContent = `${shelfParts} parts per unit · ${shelfParts * 4} total`;
   $("t-sum").textContent = `${toteParts} parts per tote · ${toteParts * 2} total`;
-  const rows = c.shelf.length + c.tote.length;
-  const doneRows = [...c.shelf.map(r => "s-" + r.k), ...c.tote.map(r => "t-" + r.k)].filter(k => state.done[k]).length;
-  $("chips").innerHTML = `<span class="chip">4 shelf units · 30 × 15 × 29½</span><span class="chip">2 totes · 12½ × 8 × 9</span><span class="chip">${shelfParts * 4 + toteParts * 2} wood parts</span><span class="chip progress">${doneRows} of ${rows} part types cut</span>`;
 }
 
-["t", "b", "p", "n", "h"].forEach(k => {
-  const inp = $("in-" + k);
-  inp.value = state.v[k];
-  inp.addEventListener("input", () => {
-    const val = parseFloat(inp.value);
-    if (!isNaN(val) && val > 0) { state.v[k] = val; save(); render(); }
+// ---------- Tracker ----------
+const fmtWhen = iso => {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" });
+};
+let renderSeq = 0;
+async function renderTracker() {
+  const seq = ++renderSeq;
+  const ids = [...new Set(Object.values(progress).map(p => p && p.by).filter(Boolean))];
+  let names = {};
+  if (user && ids.length) { try { names = await user.profiles(ids); } catch (e) {} }
+  if (seq !== renderSeq) return;
+  const canTap = mode === "local" || mode === "shared";
+  const box = $("units");
+  box.replaceChildren();
+  UNITS.forEach(u => {
+    const doneCount = u.parts.filter(([c]) => progress[`${u.id}-${c}`]).length;
+    const card = document.createElement("article");
+    card.className = "unit" + (doneCount === u.parts.length ? " complete" : "");
+    const head = document.createElement("div"); head.className = "unit-head";
+    const h = document.createElement("h3"); h.textContent = u.title;
+    const cnt = document.createElement("span"); cnt.className = "unit-count";
+    cnt.textContent = doneCount === u.parts.length ? `All ${u.parts.length} cut` : `${doneCount} of ${u.parts.length} cut`;
+    head.append(h, cnt);
+    const meter = document.createElement("div"); meter.className = "meter";
+    const fill = document.createElement("i"); fill.style.width = `${(doneCount / u.parts.length) * 100}%`; meter.append(fill);
+    const list = document.createElement("div"); list.className = "plist";
+    u.parts.forEach(([c, what]) => {
+      const code = `${u.id}-${c}`;
+      const rec = progress[code];
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "pbtn" + (pending.has(code) ? " pending" : "");
+      b.id = `p-${code}`; b.dataset.code = code;
+      b.setAttribute("aria-pressed", rec ? "true" : "false");
+      b.disabled = !canTap;
+      const s1 = document.createElement("span"); s1.className = "code"; s1.textContent = code;
+      const s2 = document.createElement("span"); s2.className = "what"; s2.textContent = what;
+      b.append(s1, s2);
+      if (rec) {
+        const s3 = document.createElement("span"); s3.className = "who";
+        const who = rec.by ? ((names[rec.by] && names[rec.by].name) || (rec.by === myId ? "You" : "Someone")) : "";
+        s3.textContent = [who, fmtWhen(rec.at)].filter(Boolean).join(" · ");
+        b.append(s3);
+      }
+      list.append(b);
+    });
+    card.append(head, meter, list);
+    box.append(card);
+  });
+  const total = ALL_CODES.filter(c => progress[c]).length;
+  $("tr-total").textContent = `${total} of ${ALL_CODES.length} parts cut`;
+  $("chips").innerHTML = `<span class="chip">4 shelf units · 30 × 15 × 29½</span><span class="chip">2 totes · 12½ × 8 × 9</span><span class="chip">${ALL_CODES.length} labelled parts</span><span class="chip progress">${total} of ${ALL_CODES.length} cut</span>`;
+}
+
+function renderSync() {
+  const msg = {
+    local: "Progress and measurements are saved in this browser only. Open the shared link on claude.ai to work as a team.",
+    loading: "Connecting to the team's shared progress…",
+    shared: "<b>Shared.</b> Ticks and measurements are saved for everyone who opens this page.",
+    readonly: "<b>View only.</b> You can see the team's progress, but you need Contributor access to tick parts or change measurements. Ask the page owner.",
+    offline: "Can't reach the shared progress right now. What's shown may be out of date. It will update by itself once the connection is back."
+  }[mode];
+  $("tr-sync").innerHTML = msg;
+  $("m-sync").innerHTML = mode === "shared" ? "These numbers are shared with the whole team. Change them once someone has measured." : (mode === "readonly" ? "Measurements are set by the team and are view only for you." : "");
+  const lock = mode === "readonly";
+  KEYS.forEach(k => $("in-" + k).disabled = lock);
+  $("resetM").disabled = lock;
+}
+
+async function toggle(code) {
+  if (pending.has(code)) return;
+  if (mode === "local") {
+    if (progress[code]) delete progress[code]; else progress[code] = { at: new Date().toISOString() };
+    saveLocal(); renderTracker(); return;
+  }
+  if (mode !== "shared") return;
+  pending.add(code); renderTracker();
+  const ref = db.collection("progress").doc(code);
+  try {
+    if (progress[code]) await ref.delete();
+    else await ref.set({ by: myId, at: new Date().toISOString() });
+  } catch (e) {
+    if (e && e.code === "invalid_argument") mode = "readonly";
+    renderSync();
+  } finally {
+    pending.delete(code); renderTracker();
+  }
+}
+$("units").addEventListener("click", e => {
+  const b = e.target.closest("button[data-code]");
+  if (b && !b.disabled) toggle(b.dataset.code);
+});
+
+// ---------- Measurements ----------
+let mTimer = null, mWriting = false, mDirty = false;
+function fillInputs(force) {
+  KEYS.forEach(k => { const el = $("in-" + k); if (force || document.activeElement !== el) el.value = measure[k]; });
+}
+async function pushMeasure() {
+  if (mode !== "shared") return;
+  if (mWriting) { mDirty = true; return; }
+  mWriting = true;
+  try { await db.doc("settings/stock").set({ ...measure, by: myId, at: new Date().toISOString() }); }
+  catch (e) { if (e && e.code === "invalid_argument") { mode = "readonly"; renderSync(); renderTracker(); } }
+  mWriting = false;
+  if (mDirty) { mDirty = false; pushMeasure(); }
+}
+KEYS.forEach(k => {
+  $("in-" + k).addEventListener("input", e => {
+    const val = parseFloat(e.target.value);
+    if (isNaN(val) || val <= 0) return;
+    measure[k] = val; saveLocal(); renderStatic();
+    clearTimeout(mTimer); mTimer = setTimeout(pushMeasure, 900);
   });
 });
 $("resetM").addEventListener("click", () => {
-  state.v = { ...DEFAULTS };
-  ["t", "b", "p", "n", "h"].forEach(k => $("in-" + k).value = state.v[k]);
-  save(); render();
+  measure = { ...DEFAULTS }; fillInputs(true); saveLocal(); renderStatic(); pushMeasure();
 });
-document.addEventListener("change", e => {
-  const id = e.target.dataset && e.target.dataset.done;
-  if (!id) return;
-  state.done[id] = e.target.checked;
-  save(); render();
-});
-render();
+
+// ---------- Shared store ----------
+async function connect() {
+  const c = window.claude;
+  if (!c || typeof c.use !== "function") return;
+  mode = "loading"; renderSync();
+  try { [db, user] = await Promise.all([c.use("db"), c.use("user")]); } catch (e) { db = null; }
+  if (!db) { mode = "local"; renderSync(); renderTracker(); return; }
+  try { myId = user ? await user.id() : null; } catch (e) {}
+  let canWrite = null;
+  try { canWrite = user ? await user.can("data.write") : null; } catch (e) {}
+  const live = canWrite === false ? "readonly" : "shared";
+  progress = {};
+  let loaded = false;
+  const timer = setTimeout(() => { if (!loaded) { mode = "offline"; renderSync(); renderTracker(); } }, 10000);
+  db.collection("progress").onSnapshot(snap => {
+    const next = {};
+    snap.docs.forEach(d => { if (d.exists) next[d.id] = d.data(); });
+    progress = next;
+    if (!snap.metadata.fromCache) { loaded = true; clearTimeout(timer); if (mode === "loading" || mode === "offline") mode = live; }
+    renderSync(); renderTracker();
+  }, () => { clearTimeout(timer); mode = "offline"; renderSync(); renderTracker(); });
+  db.doc("settings/stock").onSnapshot(snap => {
+    if (snap.exists) {
+      const d = snap.data();
+      const next = { ...DEFAULTS };
+      KEYS.forEach(k => { if (typeof d[k] === "number" && d[k] > 0) next[k] = d[k]; });
+      if (KEYS.some(k => next[k] !== measure[k])) { measure = next; fillInputs(false); renderStatic(); }
+    }
+  }, () => {});
+}
+
+$("key-shelf").innerHTML = `<dt style="grid-column:1/-1"><b>Shelves</b> <span class="muted">(1-… to 4-…)</span></dt>` + keyList(SHELF_LABELS);
+$("key-tote").innerHTML = `<dt style="grid-column:1/-1"><b>Totes</b> <span class="muted">(T1-… and T2-…)</span></dt>` + keyList(TOTE_LABELS);
+fillInputs(true);
+renderStatic();
+renderSync();
+renderTracker();
+connect();
 </script>

@@ -101,7 +101,11 @@ expected_vol = {}
 for n, _, shape in parts:
     # Independent geometry per child: the screws share one TShape, and XCAF would
     # otherwise collapse them into a single product carrying only the last label.
-    child = copy.deepcopy(shape.solids()[0])
+    # A part with several separate solids (the engraved logo) goes in as a
+    # labelled sub-assembly so none of its pieces are dropped.
+    pieces = shape.solids()
+    child = (copy.deepcopy(pieces[0]) if len(pieces) == 1
+             else Compound(children=[copy.deepcopy(s) for s in pieces]))
     child.label = n
     children.append(child)
     expected_vol[n] = shape.volume

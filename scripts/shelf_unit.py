@@ -144,6 +144,50 @@ def nosing(surface_z):
 wood["nosing_lower"] = nosing(shelf_low)
 wood["nosing_upper"] = nosing(UPPER_SURFACE)
 
+# --- Laser-engraved logo on the outer face of each side (owner request) ---------
+# Tree mark only, no text, from assets/sf-logo-mark.svg. Centred front to back on
+# the side, and centred between the upper shelf surface and the top edge.
+from pathlib import Path
+
+_ROOT = (
+    Path(__file__).resolve().parent.parent if "__file__" in globals() else Path.cwd()
+)
+LOGO_SVG = _ROOT / "assets" / "sf-logo-mark.svg"
+LOGO_H = 4.0  # in; fits the xTool F1's 115 mm (4.5 in) field, so either laser works
+LOGO_DEPTH = 0.008  # in (about 0.2 mm); shallow, to stay inside the maple face veneer
+LOGO_Y = (y_front + y_rear) / 2
+LOGO_Z = (UPPER_SURFACE + H) / 2
+
+
+def logo_faces():
+    """The mark's filled faces, LOGO_H tall, centred on the origin in XY (mm)."""
+    # fix(): two of the SVG paths import as faces OCCT flags invalid until repaired.
+    faces = [s.fix() for s in import_svg(str(LOGO_SVG)) if isinstance(s, Face)]
+    bb = Compound(faces).bounding_box()
+    k = LOGO_H * IN / bb.size.Y
+    c = bb.center()
+    return [f.moved(Location((-c.X, -c.Y, 0))).scale(k) for f in faces]
+
+
+def engraving(x_face, outward):
+    """Logo recess on a side's outer face, reading correctly from outside."""
+    plane = Plane(
+        origin=(x_face * IN, LOGO_Y * IN, LOGO_Z * IN),
+        x_dir=(0, outward, 0),  # the viewer's right, standing outside the side
+        z_dir=(outward, 0, 0),
+    )
+    cuts = [
+        extrude(plane.location * f, amount=LOGO_DEPTH * IN, dir=(-outward, 0, 0))
+        for f in logo_faces()
+    ]
+    return Part() + cuts
+
+
+wood["logo_left"] = engraving(SIDE_INSET, -1)
+wood["logo_right"] = engraving(W - SIDE_INSET, 1)
+wood["side_left"] = wood["side_left"] - wood["logo_left"]
+wood["side_right"] = wood["side_right"] - wood["logo_right"]
+
 # --- Wood screws (18, per the plan's schedule) --------------------------------
 screw_blank = Part() + [
     Cylinder(SCREW_D / 2 * IN, SCREW_L * IN, align=(Align.CENTER, Align.CENTER, Align.MIN)),

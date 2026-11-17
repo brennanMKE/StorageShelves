@@ -62,6 +62,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 }
 .readout strong { display: block; font-size: 14px; }
 .readout span { font: 400 12px/1.45 var(--mono); color: var(--muted); }
+.readout .r-head { display: flex; align-items: center; gap: 8px; }
+.readout .tape { display: inline-block; font: 700 15px/1 var(--mono); background: #4aa3df; color: #ffffff; padding: 4px 8px; border-radius: 2px; transform: rotate(-2deg); letter-spacing: .03em; }
+.readout #r-tape { display: block; margin-top: 3px; color: var(--fg); }
 .hint { position: absolute; right: 12px; top: 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
 .fail { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; line-height: 1.5; }
 @media (max-width: 760px) {
@@ -105,7 +108,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   <main class="stage" id="stage">
     <canvas id="view" aria-label="3D model of the shelf unit. Drag to rotate, scroll to zoom."></canvas>
     <div class="hint">Drag to rotate · Scroll to zoom · Click a part</div>
-    <div class="readout" aria-live="polite"><strong id="r-name">Click a part</strong><span id="r-size">Its name and size appear here.</span></div>
+    <div class="readout" aria-live="polite"><div class="r-head"><b class="tape" id="r-label" hidden></b><strong id="r-name">Click a part</strong></div><span id="r-size">Its label, name and size appear here.</span><span id="r-tape" hidden></span></div>
   </main>
 </div>
 
@@ -427,16 +430,37 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
     select(hit ? hit.object.userData.record : null);
   });
 
+  // Tape labels, matching the Shelf & Tote Cut List. Left/right as seen from the front.
+  const PART_LABELS = {
+    base: ['A1', 'Base'],
+    side_left: ['B1', 'Left side'], side_right: ['B2', 'Right side'],
+    upper_shelf: ['C1', 'Upper shelf'],
+    back: ['D1', 'Back'],
+    post_left: ['E1', 'Left post'], post_right: ['E2', 'Right post'],
+    rail_bottom: ['F1', 'Bottom rail'], ledger: ['F2', 'Upper ledger'], rail_top: ['F3', 'Top rail (1×2)'],
+    cleat_left: ['G1', 'Left cleat'], cleat_right: ['G2', 'Right cleat'],
+    nosing_lower: ['H1', 'Lower nosing'], nosing_upper: ['H2', 'Upper nosing'],
+  };
+  const rLabel = document.getElementById('r-label');
+  const rTape = document.getElementById('r-tape');
+
   function select(record) {
     if (selected) selected.material.emissive.setHex(0x000000);
     selected = record;
+    const tag = record && PART_LABELS[record.name];
+    rLabel.hidden = !tag;
+    rTape.hidden = !tag;
     if (record) {
       record.material.emissive.setHex(0x1d5f6b);
-      rName.textContent = record.title;
-      rSize.textContent = record.detail;
+      rName.textContent = tag ? tag[1] : record.title;
+      rSize.textContent = tag ? `${record.title} · ${record.detail}` : record.detail;
+      if (tag) {
+        rLabel.textContent = tag[0];
+        rTape.textContent = `Tape: 1-${tag[0]} · 2-${tag[0]} · 3-${tag[0]} · 4-${tag[0]}`;
+      }
     } else {
       rName.textContent = 'Click a part';
-      rSize.textContent = 'Its name and size appear here.';
+      rSize.textContent = 'Its label, name and size appear here.';
     }
     dirty = true;
   }
